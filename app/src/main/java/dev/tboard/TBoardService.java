@@ -1,4 +1,4 @@
-package dev.localboard;
+package dev.tboard;
 
 import android.content.Context;
 import android.content.Intent;
@@ -20,18 +20,18 @@ import android.widget.LinearLayout;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import dev.localboard.engine.Candidate;
-import dev.localboard.engine.KeyGeometry;
-import dev.localboard.engine.Lexicon;
-import dev.localboard.engine.SwipeDecoder;
-import dev.localboard.engine.TapDecoder;
+import dev.tboard.engine.Candidate;
+import dev.tboard.engine.KeyGeometry;
+import dev.tboard.engine.Lexicon;
+import dev.tboard.engine.SwipeDecoder;
+import dev.tboard.engine.TapDecoder;
 
 /**
  * The keyboard. Keeps the word being typed as "composing" text in the app's
  * text field so it can still be corrected or replaced, and commits it on
  * space, punctuation, enter, or a suggestion tap.
  */
-public final class LocalKeyboardService extends InputMethodService
+public final class TBoardService extends InputMethodService
         implements KeyboardView.Listener, EmojiPanel.Listener, EmojiSearchBar.Listener {
 
     private SharedPreferences prefs;

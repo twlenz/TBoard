@@ -1,4 +1,4 @@
-package dev.localboard;
+package dev.tboard;
 
 import java.util.ArrayList;
 import java.util.Arrays;

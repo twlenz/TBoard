@@ -1,4 +1,4 @@
-package dev.localboard.engine;
+package dev.tboard.engine;
 
 /** One possible word with its score (higher is better) and its match cost (lower is better). */
 public final class Candidate {

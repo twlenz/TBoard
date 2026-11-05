@@ -1,4 +1,4 @@
-package dev.localboard;
+package dev.tboard;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -14,7 +14,7 @@ import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
 
-import dev.localboard.engine.KeyGeometry;
+import dev.tboard.engine.KeyGeometry;
 
 /**
  * Draws the suggestion bar and keys, and turns touches into taps, swipes,

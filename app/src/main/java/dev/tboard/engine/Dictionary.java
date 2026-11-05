@@ -1,4 +1,4 @@
-package dev.localboard.engine;
+package dev.tboard.engine;
 
 import java.io.BufferedReader;
 import java.io.IOException;

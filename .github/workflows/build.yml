@@ -28,7 +28,8 @@ jobs:
       - name: Release signing key
         # Only pushes to main sign with the private key; other builds (and pull requests, which can't
         # read secrets) use the public test key. The key is created once, encrypted with the
-        # LOCALBOARD_KEY_PASSWORD secret, and committed as app/release.keystore.
+        # LOCALBOARD_KEY_PASSWORD secret, and committed as app/release.keystore. (The secret and the
+        # key's alias keep the app's old name, LocalBoard, so the existing key and secret keep working.)
         id: key
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         env:
@@ -45,7 +46,7 @@ jobs:
           fi
           if [ ! -f app/release.keystore ]; then
             keytool -genkeypair -keystore app/release.keystore -storetype PKCS12 -alias localboard \
-              -keyalg RSA -keysize 4096 -validity 36500 -dname "CN=LocalBoard" \
+              -keyalg RSA -keysize 4096 -validity 36500 -dname "CN=TBoard" \
               -storepass "$LOCALBOARD_KEY_PASSWORD" -keypass "$LOCALBOARD_KEY_PASSWORD"
             git config user.name "github-actions"
             git config user.email "github-actions@users.noreply.github.com"
@@ -61,11 +62,11 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon lintDebug assembleRelease   # lint: no APIs newer than minSdk without a version check
-          cp app/build/outputs/apk/release/app-release.apk LocalBoard.apk
+          cp app/build/outputs/apk/release/app-release.apk TBoard.apk
       - name: Check the signature
         run: |
           apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
-          "$apksigner" verify --print-certs LocalBoard.apk | tee signature.txt
+          "$apksigner" verify --print-certs TBoard.apk | tee signature.txt
           test_key=$(keytool -list -keystore app/debug.keystore -storepass android -alias androiddebugkey | grep -o 'SHA-256.*' | sed 's/.*: //; s/://g' | tr 'A-F' 'a-f')
           signed=$(grep -m1 'certificate SHA-256 digest' signature.txt | sed 's/.*: //')
           if [ "${{ steps.key.outputs.kind }}" = "private" ] && [ "$signed" = "$test_key" ]; then
@@ -74,13 +75,13 @@ jobs:
           fi
       - uses: actions/upload-artifact@v4
         with:
-          name: LocalBoard-apk
-          path: LocalBoard.apk
+          name: TBoard-apk
+          path: TBoard.apk
       - name: Publish release
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: LocalBoard build ${{ github.run_number }}${{ steps.key.outputs.kind == 'test' && ' (test key)' || '' }}
-          body: ${{ steps.key.outputs.kind == 'private' && 'Signed with the private LocalBoard key.' || 'Signed with the PUBLIC test key. Anyone can make an APK with this key that would install as an update, so set the LOCALBOARD_KEY_PASSWORD secret (see README) before relying on this build.' }}
-          files: LocalBoard.apk
+          name: TBoard build ${{ github.run_number }}${{ steps.key.outputs.kind == 'test' && ' (test key)' || '' }}
+          body: ${{ steps.key.outputs.kind == 'private' && 'Signed with the private TBoard key.' || 'Signed with the PUBLIC test key. Anyone can make an APK with this key that would install as an update, so set the LOCALBOARD_KEY_PASSWORD secret (see README) before relying on this build.' }}
+          files: TBoard.apk

@@ -1,4 +1,4 @@
-package dev.localboard;
+package dev.tboard;
 
 import android.content.Context;
 import android.graphics.Canvas;

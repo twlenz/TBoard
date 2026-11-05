@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- No <subtype>: with one, Android's keyboard picker titles the entry with the subtype's language
+     ("English") and shows the keyboard's name only underneath. Without one, it shows "TBoard". -->
 <input-method xmlns:android="http://schemas.android.com/apk/res/android"
-    android:settingsActivity="dev.localboard.SettingsActivity"
-    android:supportsSwitchingToNextInputMethod="true">
-    <subtype
-        android:imeSubtypeLocale="en_US"
-        android:imeSubtypeMode="keyboard"
-        android:label="@string/subtype_en_us"
-        android:languageTag="en-US" />
-</input-method>
+    android:settingsActivity="dev.tboard.SettingsActivity"
+    android:supportsSwitchingToNextInputMethod="true" />
