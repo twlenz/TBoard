@@ -46,5 +46,5 @@ adb logcat -d -b crash > "$out/crash-log.txt" || true
 adb logcat -d -s LocalBoard:V LBSHOTS:V LBGEOM:V AndroidRuntime:E > "$out/app-log.txt" || true
 adb shell dumpsys input_method | grep -E "mCurMethodId|mInputShown" > "$out/ime-state.txt" || true
 ls -la "$out"
-# fail the step if the app crashed
-! grep -q "dev.localboard" "$out/crash-log.txt"
+# fail the step if the app crashed or no screenshots were taken
+! grep -q "dev.localboard" "$out/crash-log.txt" && ls "$out"/*.png > /dev/null
