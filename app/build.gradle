@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'dev.localboard'
+    namespace 'dev.tboard'
     compileSdk 35
 
     defaultConfig {
-        applicationId 'dev.localboard'
+        applicationId 'dev.tboard'
         minSdk 23          // Android 6.0+; lint's NewApi check (CI) keeps newer APIs behind version checks
         targetSdk 34
         // each CI build gets a higher number, so Android can tell newer builds from older ones
@@ -15,7 +15,7 @@ android {
         versionCode build
         versionName "1.0.$build"
         // not a test framework: drives the keyboard on an emulator and takes screenshots (tools/ci_screenshots.sh)
-        testInstrumentationRunner 'dev.localboard.shots.ShotRunner'
+        testInstrumentationRunner 'dev.tboard.shots.ShotRunner'
     }
 
     // Release builds published from main are signed with app/release.keystore, which is encrypted with
@@ -37,7 +37,7 @@ android {
             release {
                 storeFile releaseStore
                 storePassword releasePassword
-                keyAlias 'localboard'
+                keyAlias 'localboard'   // the key's name inside release.keystore (from before the rename)
                 keyPassword releasePassword
             }
         }

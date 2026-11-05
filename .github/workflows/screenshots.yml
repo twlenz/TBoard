@@ -26,7 +26,7 @@ jobs:
           - api: 34      # Android 14, current phones
             target: google_apis
             arch: x86_64
-          - api: 23      # Android 6.0, the oldest version LocalBoard supports
+          - api: 23      # Android 6.0, the oldest version TBoard supports
             target: default
             arch: x86    # the x86_64 image of this version crashes its own shell tools
     steps:

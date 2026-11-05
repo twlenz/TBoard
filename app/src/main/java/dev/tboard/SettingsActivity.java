@@ -1,4 +1,4 @@
-package dev.localboard;
+package dev.tboard;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -44,7 +44,7 @@ public final class SettingsActivity extends Activity {
         scroll.addView(root);
         setContentView(scroll);
 
-        TextView title = text("LocalBoard", 28, true);
+        TextView title = text("TBoard", 28, true);
         root.addView(title);
         root.addView(text("A keyboard that works entirely on this phone. The app has no internet "
                 + "permission, so nothing you type can leave the device. Everything it learns is "
@@ -53,9 +53,9 @@ public final class SettingsActivity extends Activity {
         section("Setup");
         status = text("", 15, false);
         root.addView(status);
-        enableButton = button("1. Turn on LocalBoard in keyboard settings",
+        enableButton = button("1. Turn on TBoard in keyboard settings",
                 v -> startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)));
-        switchButton = button("2. Switch to LocalBoard", v -> {
+        switchButton = button("2. Switch to TBoard", v -> {
             InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             if (imm != null) imm.showInputMethodPicker();
         });
@@ -131,9 +131,9 @@ public final class SettingsActivity extends Activity {
         String def = Settings.Secure.getString(getContentResolver(), Settings.Secure.DEFAULT_INPUT_METHOD);
         boolean selected = def != null && def.startsWith(getPackageName() + "/");
         if (status != null) {
-            status.setText(selected ? "✅ LocalBoard is your current keyboard."
-                    : enabled ? "Step 1 done. Now switch to LocalBoard."
-                    : "LocalBoard is installed but not turned on yet.");
+            status.setText(selected ? "✅ TBoard is your current keyboard."
+                    : enabled ? "Step 1 done. Now switch to TBoard."
+                    : "TBoard is installed but not turned on yet.");
             enableButton.setEnabled(!enabled);
             switchButton.setEnabled(enabled && !selected);
         }

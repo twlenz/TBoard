@@ -2,8 +2,8 @@
  * Accuracy and speed simulation for the engine: noisy taps (with typos) and noisy swipes over
  * words sampled from the dictionary. Usage: java Sim path/to/en_words.tsv [tapNoise] [shapeW endW priorW]
  */
-import dev.localboard.engine.*;
-import dev.localboard.engine.Dictionary;
+import dev.tboard.engine.*;
+import dev.tboard.engine.Dictionary;
 import java.io.*;
 import java.util.*;
 

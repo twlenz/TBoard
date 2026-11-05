@@ -2,9 +2,9 @@ import android.inputmethodservice.InputMethodService;
 import android.view.inputmethod.*;
 import android.text.InputType;
 import android.content.ContextWrapper;
-import dev.localboard.*;
-import dev.localboard.engine.*;
-import dev.localboard.engine.Dictionary;
+import dev.tboard.*;
+import dev.tboard.engine.*;
+import dev.tboard.engine.Dictionary;
 import java.io.*;
 import java.util.*;
 
@@ -55,7 +55,7 @@ public class FuzzTest {
         }
     }
 
-    static Field f; static LocalKeyboardService s; static KeyGeometry geo = KeyGeometry.qwerty(1.5f);
+    static Field f; static TBoardService s; static KeyGeometry geo = KeyGeometry.qwerty(1.5f);
     static Random rnd; static Lexicon lex;
     static final String WORDS = "the quick brown fox jumps over lazy dog hello world teh thier recieve becuase going "
             + "dont cant im youre a i to be or not hate love what want this that there where when";
@@ -66,7 +66,7 @@ public class FuzzTest {
         long seed = a.length > 2 ? Long.parseLong(a[2]) : 12345;
         rnd = new Random(seed);
         lex = new Lexicon(d, new UserModel());
-        s = new LocalKeyboardService();
+        s = new TBoardService();
         s.onCreate();
         set("lex", lex); set("tap", new TapDecoder(lex, geo)); set("swipe", new SwipeDecoder(lex, geo));
         s.onCreateInputView();

@@ -2,15 +2,15 @@ import android.inputmethodservice.InputMethodService;
 import android.view.inputmethod.*;
 import android.text.InputType;
 import android.content.ContextWrapper;
-import dev.localboard.*;
-import dev.localboard.engine.*;
-import dev.localboard.engine.Dictionary;
+import dev.tboard.*;
+import dev.tboard.engine.*;
+import dev.tboard.engine.Dictionary;
 import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
 
 /**
- * End-to-end typing tests: drives the real LocalKeyboardService against a fake text field.
+ * End-to-end typing tests: drives the real TBoardService against a fake text field.
  * Compiled against the Android stand-ins from android_stubs.py (no Android SDK needed).
  * Usage: see run_tests.sh.
  */
@@ -30,13 +30,13 @@ public class FlowTest {
         public int getCursorCapsMode(int m) { String b = t.substring(0, cur).replaceAll("\\s+$", ""); return (b.isEmpty() || (cur > 0 && t.charAt(cur-1)==' ' && ".!?".indexOf(b.charAt(b.length()-1)) >= 0)) ? m : 0; }
         public String toString() { return t.toString().replace("\n", "\\n") + (cs >= 0 ? "  [composing " + t.substring(cs, ce) + "]" : ""); }
     }
-    static Field f; static LocalKeyboardService s; static KeyGeometry geo = KeyGeometry.qwerty(1.5f); static Random rnd = new Random(7);
+    static Field f; static TBoardService s; static KeyGeometry geo = KeyGeometry.qwerty(1.5f); static Random rnd = new Random(7);
     static int pass = 0, fail = 0;
 
     public static void main(String[] a) throws Exception {
         Dictionary d = Dictionary.load(new FileInputStream(a[0]));
         UserModel u = new UserModel(); Lexicon lex = new Lexicon(d, u);
-        s = new LocalKeyboardService();
+        s = new TBoardService();
         s.onCreate();
         set("lex", lex); set("tap", new TapDecoder(lex, geo)); set("swipe", new SwipeDecoder(lex, geo));
         s.onCreateInputView();

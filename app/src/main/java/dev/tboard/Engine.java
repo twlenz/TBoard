@@ -1,4 +1,4 @@
-package dev.localboard;
+package dev.tboard;
 
 import android.content.Context;
 import android.os.Handler;
@@ -17,9 +17,9 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import dev.localboard.engine.Dictionary;
-import dev.localboard.engine.Lexicon;
-import dev.localboard.engine.UserModel;
+import dev.tboard.engine.Dictionary;
+import dev.tboard.engine.Lexicon;
+import dev.tboard.engine.UserModel;
 
 /**
  * One copy of the dictionary and the learned model per app process, shared by
@@ -27,7 +27,7 @@ import dev.localboard.engine.UserModel;
  * private storage (user_model.tsv); nothing is ever sent anywhere.
  */
 final class Engine {
-    private static final String TAG = "LocalBoard";
+    private static final String TAG = "TBoard";
     private static final String MODEL_FILE = "user_model.tsv";
     private static Engine instance;
 

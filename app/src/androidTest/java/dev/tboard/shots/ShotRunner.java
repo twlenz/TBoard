@@ -1,4 +1,4 @@
-package dev.localboard.shots;
+package dev.tboard.shots;
 
 import android.app.Activity;
 import android.app.Instrumentation;
@@ -28,7 +28,7 @@ import java.util.List;
  * to /sdcard/lbshots. Not a unit test: run by tools/ci_screenshots.sh in CI so the
  * keyboard can be seen and checked without a phone. Uses only platform APIs.
  *
- *   adb shell am instrument -w -r dev.localboard.test/dev.localboard.shots.ShotRunner
+ *   adb shell am instrument -w -r dev.tboard.test/dev.tboard.shots.ShotRunner
  */
 public class ShotRunner extends Instrumentation {
     private static final String TAG = "LBSHOTS";
@@ -69,7 +69,7 @@ public class ShotRunner extends Instrumentation {
         prefs.edit().clear().putString("theme", "light").commit();
 
         Intent i = new Intent(Intent.ACTION_MAIN);
-        i.setClassName(getTargetContext(), "dev.localboard.SettingsActivity");
+        i.setClassName(getTargetContext(), "dev.tboard.SettingsActivity");
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         activity = startActivitySync(i);
         waitForIdleSync();
@@ -214,6 +214,17 @@ public class ShotRunner extends Instrumentation {
             shot("20_landscape");
             sh("settings put system user_rotation 0");
             sleep(1500);
+        });
+        step("21_keyboard_picker", () -> {
+            readGeometry(); // the last position logged, after rotating back
+            float[] p = at(5.5f, 3); // long-press the space bar: Android's keyboard picker
+            long d = SystemClock.uptimeMillis();
+            touch(MotionEvent.ACTION_DOWN, d, p[0], p[1]);
+            sleep(1000);
+            touch(MotionEvent.ACTION_UP, d, p[0], p[1]);
+            sleep(1500);
+            shot("21_keyboard_picker");
+            sh("input keyevent 4");
         });
     }
 
