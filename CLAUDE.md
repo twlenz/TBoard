@@ -16,7 +16,7 @@ An Android keyboard similar to Gboard that does **everything locally**: swipe ty
 
 - **Built by GitHub Actions** (`.github/workflows/build.yml`) on every push and pull request; pushes to `main` publish the APK as a GitHub Release named `build-N`. That is how the user installs it. Cloud sessions here cannot reach Google's Maven/SDK hosts, so a local `./gradlew` build fails; use CI.
 - **Run on an emulator** by `.github/workflows/screenshots.yml`: it installs the debug build, makes it the active keyboard, drives it with injected touches (`app/src/androidTest/java/dev/localboard/shots/ShotRunner.java`, platform APIs only, no test libraries) and force-pushes the PNGs to the `screenshots` branch. Fetch that branch to look at them.
-- **Logic tests:** `tools/run_tests.sh` (JDK + Python 3 only) runs 44 typing scenarios against the real service and the accuracy simulation. CI runs it too.
+- **Logic tests:** `tools/run_tests.sh` (JDK + Python 3 only) runs 46 typing scenarios against the real service, a random-action stress test (`FuzzTest`: crashes, text changed far from the cursor, learning in password/incognito fields; checked by planting bugs, which it catches) and the accuracy simulation. CI runs it too.
 - **Not yet run on a real phone.** On-device speed, haptics and real-finger swipe accuracy are unverified.
 - To compile against the real Android API without the SDK, Robolectric's `org.robolectric:android-all` jar from Maven Central works as a classpath (`javac --release 17 -cp android-all.jar ...`). It includes hidden APIs, so it is more permissive than `android.jar`.
 
@@ -30,7 +30,8 @@ An Android keyboard similar to Gboard that does **everything locally**: swipe ty
 
 ```
 app/build.gradle               AGP 8.7.3, compileSdk 35, minSdk 23 (Android 6.0), targetSdk 34, Java 17, no dependencies; lint checkOnly NewApi
-app/debug.keystore             fixed signing key (password "android") so new APKs install over old ones and keep learned data
+app/debug.keystore             PUBLIC test key (password "android"); used for test builds and as a fallback
+app/release.keystore           private release key, created by CI on first use, encrypted with the LOCALBOARD_KEY_PASSWORD secret
 app/src/main/AndroidManifest.xml   no <uses-permission> at all (in particular no INTERNET); allowBackup=false
 app/src/main/assets/en_words.tsv   61,823 words: displayForm \t zipfFrequency \t offensiveFlag
 app/src/main/res/xml/method.xml    IME declaration, en_US subtype, settings activity
@@ -84,7 +85,8 @@ app/src/androidTest/.../ShotRunner.java   emulator screenshot driver (set as tes
 - **When it autocorrects:**
   - If the typed word is known, the best alternative must beat it by 5.0 in score.
   - If the typed word is unknown, the best candidate's cost must be ≤ 2 + 1.1 × length.
-  - Offensive words are never offered unless the user turns that setting off; words the user typed themselves are still learned.
+  - With the "Block offensive words" setting on (off by default), offensive words are never offered; words the user typed themselves are still learned.
+  - A fix the person made by hand (`UserModel.correctionFor`) is applied before all of the above.
 
 **Swipe decoding (`SwipeDecoder`):**
 - **Filter:** the first letter must be within 1.4 key widths of where the path starts, and the last letter within 1.6 of where it ends.
@@ -104,7 +106,7 @@ app/src/androidTest/.../ShotRunner.java   emulator screenshot driver (set as tes
 **Composing model (`LocalKeyboardService`):**
 - **Typing:** the current word is composing text. Space, punctuation, enter, or a suggestion tap commits it, autocorrecting if allowed.
 - **Undo:** backspace right after an autocorrect restores the typed word only if the text before the cursor is exactly "correction + separator". It then unlearns the correction and confirms the original.
-- **Swiping:** a swiped word stays composing so a suggestion tap can swap it, and a pending space goes in before the next word. One backspace deletes the whole swiped word.
+- **Swiping:** a swiped word stays composing so a suggestion tap can swap it, and a pending space goes in before the next word. Backspace edits it letter by letter.
 - **Stale cursor reports:** `onUpdateSelection` checks the actual text before dropping the composing word, because the app's cursor reports can lag behind fast typing.
 
 ## Correcting committed words (`LocalKeyboardService`)
@@ -125,10 +127,10 @@ From `tools/run_tests.sh`, with tap noise σ = 0.30 key widths and 400 words sam
 
 | Check | Result |
 |---|---|
-| Correctly-hit words left alone | 259/273; 0 correctly typed words changed. The 14 misses are noise-hit words, some changed into other real words |
-| Typos fixed (swap, drop or double letter) | 102/127 (80%) |
-| Swipe: intended word first | 375/400 (94%) |
-| Swipe: intended word in top 3 | 392/400 (98%) |
+| Correctly-hit words left alone | 261/273; 0 correctly typed words changed. The 12 misses are noise-hit words, some changed into other real words |
+| Typos fixed (swap, drop or double letter) | 103/127 (81%) |
+| Swipe: intended word first | 380/400 (95%) |
+| Swipe: intended word in top 3 | 397/400 (99%) |
 | Speed | about 5 ms per tap decode, about 4 ms per swipe decode, on a desktop CPU |
 
 Simulated swipes are cleaner than real ones, so expect lower real-world swipe accuracy. The tuning parameters (`shapeWeight`, `endWeight`, `priorWeight`, and the first-letter threshold of 3.0) were picked by sweeping in `Sim`.
@@ -143,7 +145,7 @@ Simulated swipes are cleaner than real ones, so expect lower real-world swipe ac
 6. **Emoji panel:** no skin tones. Emoji the phone can't draw are hidden, so older phones show fewer.
 7. **Tests use the JDK, not Gradle:** `tools/` uses plain javac/java with stubs. Porting `FlowTest` scenarios to JUnit (`app/src/test`) with real Android classes would need Robolectric, which isn't set up.
 8. **targetSdk 34 is deliberate:** it avoids Android 15's enforced edge-to-edge layout for the keyboard window. The app isn't meant for the Play Store.
-9. **The committed `debug.keystore` is deliberate:** builds from any machine or CI install over each other without wiping learned data. It isn't a secret.
+9. **Signing:** the repo is public, so `debug.keystore` is a public key; releases from main use `release.keystore` once the user has set the `LOCALBOARD_KEY_PASSWORD` secret (README). Without it, releases are named "(test key)". `versionCode` is the build workflow's run number.
 10. **Licensing:** the word list comes from wordfreq data (CC BY-SA 4.0), filtered with Hunspell en_US/SCOWL. The offensive-word flags come from better_profanity (MIT). The credits are in the About section of the settings screen.
 
 ## History
@@ -162,5 +164,6 @@ Simulated swipes are cleaner than real ones, so expect lower real-world swipe ac
    - `UserModel.unlearn` bumps `knownVersion` so `Lexicon` drops words that stop being known.
    - First emulator run (Android 14, Pixel 6 profile): no crashes; typing, autocorrect bar, swipe, popups, symbols, emoji, themes, heights and next-word predictions all render and work. Fixed from the pictures: key preview was white-on-white (now outlined), number hints collided with letters on short keys (letters now scale with key height), landscape rows are 75% height, and the settings screen keeps its state on rotation.
    - Second round, from the user's feedback: double-space period off by default and blocked after a backspace; backspace edits swiped words letter by letter; learning from hand-made corrections; gray line-drawn emoji key; offensive-word blocking off by default; emoji search; vibration off by default; minSdk lowered to 23 with a legacy theme (values/) and PNG launcher icons for API < 26; emoji filtered at runtime by `Paint.hasGlyph`. The screenshots workflow runs on API 34 and API 23.
+   - Safety audit (user asked for no harmful side effects): inspected the build-17 APK itself. It has no permissions, isn't debuggable, contains no test code, and its only file access is its own `user_model.tsv`. Added `FuzzTest`. Found and fixed: the public signing key (now a private key via a secret), every build having versionCode 1, and next-word data that could grow without limit (pruned with the word list).
    - User's phone: Samsung Galaxy S24. Keep it working across many Android versions.
    - CI: `setup-android@v3` needs `packages: platform-tools` (its default asks for the removed `tools` package). The wrapper jar was checked byte-for-byte against Gradle 8.14.3's own.

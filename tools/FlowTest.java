@@ -135,6 +135,12 @@ public class FlowTest {
         check2("learned wnat -> what (got " + um.correctionFor("wnat") + ")", "what".equals(um.correctionFor("wnat")));
         type("wnat "); check("in-word fix is applied by itself", "So what now what ");
 
+        // the learned model stays bounded however much is typed
+        UserModel big = new UserModel();
+        for (int i = 0; i < 45000; i++) { String w = "w" + Integer.toString(i, 26).replace('0', 'z'); big.learn("p" + i, w, false); big.learn("p" + i, w, false); }
+        check2("learned words stay under the limit (" + big.learnedWordCount() + ")", big.learnedWordCount() <= 40000);
+        check2("next-word data stays bounded too", big.serialize().split("\nB\t", -1).length <= 40001);
+
         // emoji search: letters go to the search box, not the app
         start(InputType.TYPE_CLASS_TEXT, 0);
         ArrayList<String> hearts = new EmojiSearch().search("red heart", 5, null, null);

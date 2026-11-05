@@ -19,7 +19,23 @@ Each push also runs the keyboard on an Android emulator and saves screenshots of
 3. Tap **Turn on LocalBoard**, enable it in the list, and accept Android's standard warning (it says this for every third-party keyboard).
 4. Tap **Switch to LocalBoard**.
 
-Every build is signed with the same key (`app/debug.keystore`), so a new APK installs over the old one and keeps what the keyboard has learned. That key is a debug key and not secret; it is fine for personal sideloading, not for a store release.
+### Signing: do this once, before installing
+
+Android only lets an APK replace an installed app if both are signed with the same key. This repository is public, and so is its test key (`app/debug.keystore`). Anyone could sign a different app with it, and the phone would accept it as a LocalBoard update. For a keyboard, which sees everything typed, that matters. So releases should be signed with a private key:
+
+1. On github.com, open this repository → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**.
+2. Name: `LOCALBOARD_KEY_PASSWORD`. Value: a long random password, at least 16 characters (a password manager can make one). Nobody, including GitHub's staff, can read it back; you don't need to remember it, but don't change or delete it later.
+3. Push anything to `main` (or run the "Build APK" workflow by hand). That build creates the private key, commits it encrypted with your password as `app/release.keystore`, and signs the release with it. Its release notes say "Signed with the private LocalBoard key".
+
+Releases made without the secret are named "(test key)". An APK signed with one key can't update an app installed from the other: uninstall LocalBoard first (this erases what it learned).
+
+Each build has a higher version number than the last, so Android refuses to install an older build over a newer one.
+
+### Safety notes
+
+- The app has no permissions at all: no internet, storage, contacts or anything else. It can only read and write its own private folder, and uninstalling it removes only that folder.
+- It doesn't run before the phone's first unlock after a restart (it isn't "direct boot aware"), so Android uses your phone's own keyboard for that unlock. You can't be locked out by it.
+- Keep your phone's original keyboard enabled. If LocalBoard ever misbehaves, long-press the space bar (or use the keyboard button in the navigation bar) to switch back.
 
 ## Using it
 
