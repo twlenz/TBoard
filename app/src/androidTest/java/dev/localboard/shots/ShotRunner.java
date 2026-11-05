@@ -200,8 +200,10 @@ public class ShotRunner extends Instrumentation {
         });
         step("20_landscape", () -> {
             sh("settings put system accelerometer_rotation 0");
+            sh("logcat -c");
             sh("settings put system user_rotation 1");
             sleep(2500);
+            readGeometry();
             shot("20_landscape");
             sh("settings put system user_rotation 0");
             sleep(1500);

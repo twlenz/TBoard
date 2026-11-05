@@ -7,6 +7,7 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.content.pm.ApplicationInfo;
+import android.content.res.Configuration;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.HapticFeedbackConstants;
@@ -92,6 +93,7 @@ final class KeyboardView extends View {
     private final Paint hintPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint trailPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint stripPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint outlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF rect = new RectF();
     private final Path trail = new Path();
 
@@ -123,6 +125,8 @@ final class KeyboardView extends View {
         trailPaint.setStrokeCap(Paint.Cap.ROUND);
         trailPaint.setStrokeJoin(Paint.Join.ROUND);
         trailPaint.setStrokeWidth(5f * density);
+        outlinePaint.setStyle(Paint.Style.STROKE);
+        outlinePaint.setStrokeWidth(Math.max(1f, density));
         theme = KeyboardTheme.resolve(context, "system");
         debuggable = (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
     }
@@ -180,7 +184,10 @@ final class KeyboardView extends View {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int w = MeasureSpec.getSize(widthMeasureSpec);
         float strip = 44f * density;
-        int h = (int) (strip + 4 * rowDp * density + 6f * density);
+        // landscape screens are short, so the keys get 75% of their portrait height there
+        boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        float row = landscape ? rowDp * 0.75f : rowDp;
+        int h = (int) (strip + 4 * row * density + 6f * density);
         setMeasuredDimension(w, h);
     }
 
@@ -305,7 +312,7 @@ final class KeyboardView extends View {
             size = label.length() > 2 ? 14f : 22f;
         } else if (k.isLetter()) {
             if (shiftState > 0) label = label.toUpperCase(java.util.Locale.ROOT);
-            size = 23f;
+            size = Math.min(23f, rect.height() * 0.45f / density); // leaves room for the number hint on short keys
         } else if (k.code == KeyboardLayout.SHIFT) {
             label = shiftState > 0 ? "⬆" : "⇧";
             size = 22f;
@@ -325,8 +332,8 @@ final class KeyboardView extends View {
             String hint = k.hint();
             if (hint != null) {
                 hintPaint.setColor(theme.textDim);
-                hintPaint.setTextSize(11f * density);
-                canvas.drawText(hint, rect.right - 7f * density, rect.top + 13f * density, hintPaint);
+                hintPaint.setTextSize(10f * density);
+                canvas.drawText(hint, rect.right - 6f * density, rect.top + 11f * density, hintPaint);
             }
         }
     }
@@ -353,6 +360,8 @@ final class KeyboardView extends View {
         rect.offset(0, -density * 2);
         keyPaint.setColor(theme.popup);
         canvas.drawRoundRect(rect, radius, radius, keyPaint);
+        outlinePaint.setColor(theme.dark ? 0x40FFFFFF : 0x40000000); // so a white bubble stands out over white keys
+        canvas.drawRoundRect(rect, radius, radius, outlinePaint);
         String label = k.label;
         if (k.isLetter() && shiftState > 0) label = label.toUpperCase(java.util.Locale.ROOT);
         textPaint.setColor(theme.text);
@@ -369,6 +378,8 @@ final class KeyboardView extends View {
         canvas.drawRoundRect(rect, radius, radius, keyPaint);
         keyPaint.setColor(theme.popup);
         canvas.drawRoundRect(popupRect, radius, radius, keyPaint);
+        outlinePaint.setColor(theme.dark ? 0x40FFFFFF : 0x40000000);
+        canvas.drawRoundRect(popupRect, radius, radius, outlinePaint);
         float cw = popupRect.width() / popupItems.length;
         textPaint.setTypeface(Typeface.DEFAULT);
         textPaint.setTextSize(22f * density);

@@ -48,7 +48,7 @@ S['android.content.SharedPreferences'] = '''public interface SharedPreferences {
 S['android.content.Intent'] = '''public class Intent { public static final int FLAG_ACTIVITY_NEW_TASK = 0x10000000;
  public Intent(String action){} public Intent(android.content.Context c, Class<?> cls){} public Intent addFlags(int f){return this;} }'''
 S['android.content.res.Resources'] = '''public class Resources { public android.util.DisplayMetrics getDisplayMetrics(){android.util.DisplayMetrics d=new android.util.DisplayMetrics(); d.density=2.75f; return d;} public Configuration getConfiguration(){return new Configuration();} }'''
-S['android.content.res.Configuration'] = '''public final class Configuration { public static final int UI_MODE_NIGHT_MASK=0x30, UI_MODE_NIGHT_YES=0x20; public int uiMode; }'''
+S['android.content.res.Configuration'] = '''public final class Configuration { public static final int UI_MODE_NIGHT_MASK=0x30, UI_MODE_NIGHT_YES=0x20, ORIENTATION_LANDSCAPE=2; public int uiMode, orientation; }'''
 S['android.content.res.AssetManager'] = '''public final class AssetManager { public java.io.InputStream open(String f) throws java.io.IOException {return null;} }'''
 S['android.util.DisplayMetrics'] = 'public class DisplayMetrics { public float density; }'
 S['android.util.TypedValue'] = 'public class TypedValue { public static final int COMPLEX_UNIT_SP = 2; }'
@@ -77,7 +77,7 @@ S['android.graphics.Paint'] = '''public class Paint { public static final int AN
  public void setStrokeWidth(float w){} public void setColor(int c){} public void setTextSize(float s){} public Typeface setTypeface(Typeface t){return t;}
  public float measureText(String s){return 0;} public FontMetrics getFontMetrics(){return null;} }'''
 S['android.graphics.Path'] = 'public class Path { public void reset(){} public void moveTo(float x, float y){} public void lineTo(float x, float y){} }'
-S['android.graphics.RectF'] = '''public class RectF { public float left, top, right, bottom; public final void set(float l, float t, float r, float b){} public void set(RectF o){}
+S['android.graphics.RectF'] = '''public class RectF { public float left, top, right, bottom; public final void set(float l, float t, float r, float b){} public void set(RectF o){} public final float height(){return bottom-top;}
  public void offset(float dx, float dy){} public final float width(){return 0;} public final float centerX(){return 0;} public final float centerY(){return 0;} }'''
 S['android.graphics.Typeface'] = 'public class Typeface { public static final Typeface DEFAULT = null, DEFAULT_BOLD = null; }'
 S['android.media.AudioManager'] = 'public class AudioManager { public static final int FX_KEYPRESS_STANDARD = 5; public void playSoundEffect(int e, float v){} }'
