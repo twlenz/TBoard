@@ -22,6 +22,8 @@ public final class UserModel {
         String display;
         int count;
         boolean confirmed;
+        /** On the person's "Words to keep" list: never autocorrected, survives clearing learned data. */
+        boolean kept;
     }
 
     private final HashMap<String, Entry> words = new HashMap<>();
@@ -136,6 +138,52 @@ public final class UserModel {
         return corrections.size();
     }
 
+    /** Adds a word to the "Words to keep" list: it's never autocorrected and is suggested as you type. */
+    public void keep(String word) {
+        String k = word.toLowerCase(Locale.ROOT);
+        if (k.isEmpty()) return;
+        Entry e = words.get(k);
+        if (e == null) {
+            e = new Entry();
+            words.put(k, e);
+        }
+        e.display = word;
+        e.confirmed = true;
+        e.kept = true;
+        corrections.remove(k);
+        knownVersion++;
+        dirty = true;
+    }
+
+    /** Takes a word off the "Words to keep" list; it can be autocorrected again. */
+    public void unkeep(String word) {
+        String k = word.toLowerCase(Locale.ROOT);
+        if (words.remove(k) != null) {
+            knownVersion++;
+            dirty = true;
+        }
+    }
+
+    /** True if the person put this word on the "Words to keep" list. */
+    public boolean isKept(String lower) {
+        Entry e = words.get(lower);
+        return e != null && e.kept;
+    }
+
+    /**
+     * The words shown in settings as "Words to keep": the ones added there, plus words outside the
+     * dictionary that the person kept some other way (e.g. by undoing an autocorrection). Sorted.
+     */
+    public ArrayList<String> keptWords(Dictionary dict) {
+        ArrayList<String> out = new ArrayList<>();
+        for (Map.Entry<String, Entry> e : words.entrySet()) {
+            Entry v = e.getValue();
+            if (v.kept || (v.confirmed && dict.find(e.getKey()) < 0)) out.add(v.display);
+        }
+        Collections.sort(out, String.CASE_INSENSITIVE_ORDER);
+        return out;
+    }
+
     /** Running average of where this person's taps land relative to each key's center. */
     public void learnTouch(char c, float dx, float dy) {
         int i = Dictionary.letterIndex(c);
@@ -240,9 +288,15 @@ public final class UserModel {
         return knownVersion;
     }
 
+    /** Forgets everything learned, except the "Words to keep" list. */
     public void clear() {
         knownVersion++;
-        words.clear();
+        Iterator<Map.Entry<String, Entry>> it = words.entrySet().iterator();
+        while (it.hasNext()) {
+            Entry e = it.next().getValue();
+            if (e.kept) e.count = 0;
+            else it.remove();
+        }
         bigrams.clear();
         corrections.clear();
         total = 0;
@@ -264,7 +318,7 @@ public final class UserModel {
         for (Map.Entry<String, Entry> e : words.entrySet()) {
             Entry v = e.getValue();
             sb.append("W\t").append(clean(v.display)).append('\t').append(v.count).append('\t')
-                    .append(v.confirmed ? 1 : 0).append('\n');
+                    .append(v.confirmed ? 1 : 0).append('\t').append(v.kept ? 1 : 0).append('\n');
         }
         for (Map.Entry<String, HashMap<String, Integer>> b : bigrams.entrySet()) {
             for (Map.Entry<String, Integer> f : b.getValue().entrySet()) {
@@ -300,6 +354,7 @@ public final class UserModel {
                         e.display = p[1];
                         e.count = Integer.parseInt(p[2]);
                         e.confirmed = p[3].equals("1");
+                        e.kept = p.length > 4 && p[4].equals("1");
                         words.put(p[1].toLowerCase(Locale.ROOT), e);
                         break;
                     }

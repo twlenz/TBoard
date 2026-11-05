@@ -140,6 +140,36 @@ public class FlowTest {
         check2("learned wnat -> what (got " + um.correctionFor("wnat") + ")", "what".equals(um.correctionFor("wnat")));
         type("wnat "); check("in-word fix is applied by itself", "So what now what ");
 
+        // "Words to keep": never autocorrected, listed in settings, survive clearing learned data
+        start(InputType.TYPE_CLASS_TEXT, 0);
+        type("so tge "); check("setup: tge is autocorrected", "So the ");
+        UserModel um2 = ((Lexicon) get("lex")).user;
+        um2.keep("tge");
+        type("tge "); check("a kept word is never autocorrected", "So the tge ");
+        check2("a kept word is offered as a suggestion", ((Lexicon) get("lex")).isKnown("tge"));
+        um2.unkeep("tge");
+        type("tge "); check("removed from the list: corrected again", "So the tge the ");
+        UserModel keepTest = new UserModel();
+        keepTest.keep("Siobhan"); keepTest.learn(null, "hello", false); keepTest.confirm("blorp");
+        keepTest.clear();
+        check2("clearing learned data keeps the list", keepTest.isKept("siobhan") && keepTest.count("hello") == 0);
+        keepTest.confirm("blorp");
+        UserModel reload = new UserModel(); reload.load(new StringReader(keepTest.serialize()));
+        check2("the list survives saving and loading", reload.isKept("siobhan"));
+        check2("words kept by undoing an autocorrection are listed too (" + reload.keptWords(d) + ")",
+                reload.keptWords(d).contains("Siobhan") && reload.keptWords(d).contains("blorp"));
+        check2("the add box strips punctuation and rejects non-words",
+                "yeet".equals(SettingsActivity.cleanWord("\"yeet!\"")) && "rock'n'roll".equals(SettingsActivity.cleanWord("rock'n'roll"))
+                && SettingsActivity.cleanWord("123") == null && SettingsActivity.cleanWord("!!") == null);
+
+        // tapping the app's own send button: the app reads the text as shown, then clears the field
+        start(InputType.TYPE_CLASS_TEXT, 0);
+        type("i like teh");
+        String sent = f.t.toString();
+        f.t.setLength(0); f.cur = 0; f.cs = f.ce = -1; sel();
+        check2("app's send button sends exactly what was shown (\"" + sent + "\")", sent.equals("I like teh"));
+        check("and the keyboard adds nothing to the cleared field", "");
+
         // the learned model stays bounded however much is typed
         UserModel big = new UserModel();
         for (int i = 0; i < 45000; i++) { String w = "w" + Integer.toString(i, 26).replace('0', 'z'); big.learn("p" + i, w, false); big.learn("p" + i, w, false); }

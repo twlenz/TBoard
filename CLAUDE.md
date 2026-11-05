@@ -16,7 +16,7 @@ An Android keyboard similar to Gboard that does **everything locally**: swipe ty
 
 - **Built by GitHub Actions** (`.github/workflows/build.yml`) on every push and pull request; pushes to `main` publish the APK as a GitHub Release named `build-N`. That is how the user installs it. Cloud sessions here cannot reach Google's Maven/SDK hosts, so a local `./gradlew` build fails; use CI.
 - **Run on an emulator** by `.github/workflows/screenshots.yml`: it installs the debug build, makes it the active keyboard, drives it with injected touches (`app/src/androidTest/java/dev/tboard/shots/ShotRunner.java`, platform APIs only, no test libraries) and force-pushes the PNGs to the `screenshots` branch. Fetch that branch to look at them.
-- **Logic tests:** `tools/run_tests.sh` (JDK + Python 3 only) runs 51 typing scenarios against the real service, a random-action stress test (`FuzzTest`: crashes, text changed far from the cursor, learning in password/incognito fields; checked by planting bugs, which it catches) and the accuracy simulation. CI runs it too.
+- **Logic tests:** `tools/run_tests.sh` (JDK + Python 3 only) runs 61 typing scenarios against the real service, a random-action stress test (`FuzzTest`: crashes, text changed far from the cursor, learning in password/incognito fields; checked by planting bugs, which it catches) and the accuracy simulation. CI runs it too.
 - **Not yet run on a real phone.** On-device speed, haptics and real-finger swipe accuracy are unverified.
 - To compile against the real Android API without the SDK, Robolectric's `org.robolectric:android-all` jar from Maven Central works as a classpath (`javac --release 17 -cp android-all.jar ...`). It includes hidden APIs, so it is more permissive than `android.jar`.
 
@@ -116,6 +116,10 @@ app/src/androidTest/.../ShotRunner.java   emulator screenshot driver (set as tes
 - **Learning** (`learnFromEdit`): if the old word was a recent autocorrection (`recentCorrections`: corrected → typed) and the person restored what they typed, that word is confirmed. Otherwise, if the source (the typed form, or the old word) is unknown, the new word is known, and they're within `closeEnough` (≤2 edits, ≤ a third of the length), `UserModel.learnCorrection(source, new)` stores it. `TapDecoder` applies a stored fix before anything else. Keeping the typo (`confirm`, e.g. backspace-undo) deletes the fix.
 - **Deleting:** plain characters (below U+0300) are deleted with `deleteSurroundingText` so the text is current immediately; emoji, other characters and deletes in an empty field use a DEL key event.
 - **Double-space period:** off by default; `doubleSpaceBlocked` is set by backspace and cleared by any other character.
+
+## Words to keep
+
+Settings section (`SettingsActivity`): an "Add a word" box (no-suggestions field, several words split on spaces/commas, `cleanWord` strips punctuation) and a list with Remove buttons. `UserModel.keep` sets `Entry.kept` (and `confirmed`); `TapDecoder` never returns a correction for a kept word, even a dictionary word. The list shows kept words plus confirmed words outside the dictionary (`keptWords`). `UserModel.clear` keeps kept words; "Clear everything learned" now saves the cleared model instead of deleting the file. Saved as a fifth `W` column (older files load fine).
 
 ## Emoji search
 

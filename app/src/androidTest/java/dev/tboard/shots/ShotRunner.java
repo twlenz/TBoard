@@ -15,7 +15,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.ScrollView;
 
 import java.io.FileInputStream;
@@ -79,6 +81,26 @@ public class ShotRunner extends Instrumentation {
         step("02_settings_middle", () -> {
             scrollTo(0.35f);
             shot("02_settings_middle");
+        });
+        step("03b_words_to_keep", () -> {
+            // add three words with the real "Add" box and button, then show the list
+            runOnMainSync(() -> {
+                View decor = activity.getWindow().getDecorView();
+                EditText in = (EditText) findView(decor, v -> v instanceof EditText
+                        && "Add a word".contentEquals(String.valueOf(((EditText) v).getHint())));
+                in.setText("TBoard, Siobhan, yeet");
+                findView(decor, v -> v instanceof Button && "Add".contentEquals(((Button) v).getText())).performClick();
+            });
+            sleep(800);
+            runOnMainSync(() -> {
+                View header = findView(activity.getWindow().getDecorView(), v -> v instanceof TextView
+                        && !(v instanceof Button) && "Words to keep".contentEquals(((TextView) v).getText()));
+                ScrollView sv = (ScrollView) ((ViewGroup) activity.findViewById(android.R.id.content)).getChildAt(0);
+                sv.scrollTo(0, Math.max(0, header.getTop() - (int) (8 * density())));
+            });
+            sleep(500);
+            shot("03b_words_to_keep");
+            scrollTo(0f);
         });
         step("03_settings_bottom", () -> {
             scrollTo(1f);
@@ -386,6 +408,22 @@ public class ShotRunner extends Instrumentation {
             sv.scrollTo(0, (int) (max * fraction));
         });
         sleep(500);
+    }
+
+    private interface ViewTest {
+        boolean matches(View v);
+    }
+
+    private static View findView(View v, ViewTest t) {
+        if (t.matches(v)) return v;
+        if (v instanceof ViewGroup) {
+            ViewGroup g = (ViewGroup) v;
+            for (int i = 0; i < g.getChildCount(); i++) {
+                View found = findView(g.getChildAt(i), t);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     private static EditText findEdit(View v) {

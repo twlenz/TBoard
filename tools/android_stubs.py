@@ -150,7 +150,9 @@ S[W+'AbsListView'] = '''public abstract class AbsListView extends AdapterView<Li
 S[W+'GridView'] = '''public class GridView extends AbsListView { public static final int STRETCH_COLUMN_WIDTH = 2; public GridView(android.content.Context c){super(c);}
  public void setNumColumns(int n){} public void setStretchMode(int m){} public void setVerticalSpacing(int s){} public void setHorizontalSpacing(int s){} public void setAdapter(ListAdapter a){} }'''
 S[W+'TextView'] = '''public class TextView extends android.view.View { public TextView(android.content.Context c){super(c);}
- public final void setText(CharSequence t){} public void setGravity(int g){} public void setTextSize(int u, float s){} public void setTypeface(android.graphics.Typeface t){}
+ public interface OnEditorActionListener { boolean onEditorAction(TextView v, int actionId, android.view.KeyEvent e); }
+ public void setImeOptions(int o){} public void setOnEditorActionListener(OnEditorActionListener l){} private CharSequence txt=""; public CharSequence getText(){return txt;}
+ public final void setText(CharSequence t){txt=t;} public void setGravity(int g){} public void setTextSize(int u, float s){} public void setTypeface(android.graphics.Typeface t){}
  public void setTextColor(int c){} public void setSingleLine(boolean b){} public void setHintTextColor(int c){} public void setAllCaps(boolean a){} public final void setHint(CharSequence h){} public void setInputType(int t){} public void setMinLines(int n){} }'''
 S[W+'Button'] = 'public class Button extends TextView { public Button(android.content.Context c){super(c);} }'
 S[W+'EditText'] = 'public class EditText extends TextView { public EditText(android.content.Context c){super(c);} }'

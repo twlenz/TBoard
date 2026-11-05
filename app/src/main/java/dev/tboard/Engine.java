@@ -80,8 +80,10 @@ final class Engine {
             main.post(() -> {
                 loading = false;
                 if (d == null) return;
-                if (gen != clearGeneration) user.clear();
+                boolean cleared = gen != clearGeneration;
+                if (cleared) user.clear();
                 lexicon = new Lexicon(d, user);
+                if (cleared) save();
                 ArrayList<Runnable> run = new ArrayList<>(waiting);
                 waiting.clear();
                 for (Runnable r : run) r.run();
@@ -106,14 +108,31 @@ final class Engine {
         });
     }
 
-    /** Forgets everything learned. Call on the main thread. */
+    /** Forgets everything learned except the "Words to keep" list. Call on the main thread. */
     void clearUserData() {
         clearGeneration++;
-        if (lexicon != null) lexicon.user.clear();
-        io.execute(() -> {
-            //noinspection ResultOfMethodCallIgnored
-            new File(app.getFilesDir(), MODEL_FILE).delete();
-        });
+        if (lexicon != null) {
+            lexicon.user.clear();
+            save();
+        }
+        // if still loading, the load clears it and saves (below)
+    }
+
+    /** The "Words to keep" list, or null while loading. Call on the main thread. */
+    java.util.List<String> keptWords() {
+        return lexicon == null ? null : lexicon.user.keptWords(lexicon.dict);
+    }
+
+    void keepWord(String word) {
+        if (lexicon == null) return;
+        lexicon.user.keep(word);
+        save();
+    }
+
+    void unkeepWord(String word) {
+        if (lexicon == null) return;
+        lexicon.user.unkeep(word);
+        save();
     }
 
     int learnedWordCount() {
