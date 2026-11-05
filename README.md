@@ -8,7 +8,9 @@ Pick one:
 
 **A. Android Studio (any computer).** Open this folder in Android Studio, let it sync, then *Build → Build App Bundle(s) / APK(s) → Build APK(s)*. The APK appears under `app/build/outputs/apk/`. Or from a terminal with the Android SDK installed: `./gradlew assembleRelease` → `app/build/outputs/apk/release/app-release.apk`.
 
-**B. GitHub, no Android tools needed.** Create a new repository on github.com and, in a computer's web browser, use *Add file → Upload files* and drag in everything inside this folder, including the hidden `.github` folder. (Phone browsers can't upload folders, so this step needs a computer.) GitHub then builds the APK and posts it under the repository's **Releases**, where you can download it on your phone. Each new upload to `main` makes a new build.
+**B. GitHub, no Android tools needed.** Every push to `main` makes GitHub build the APK and post it under the repository's **Releases** (`build-N`), where you can download it on your phone. Pushes to other branches and pull requests are built and tested too, but not released.
+
+Each push also runs the keyboard on an Android emulator and saves screenshots of it to the `screenshots` branch (`.github/workflows/screenshots.yml`).
 
 ## Installing and turning it on
 
@@ -27,7 +29,7 @@ Every build is signed with the same key (`app/debug.keystore`), so a new APK ins
 - **Long-press space** to switch keyboards; **slide on space** to move the cursor.
 - **Double-tap shift** for caps lock.
 
-All behaviors have their own switches in settings: autocorrect, backspace-undoes-autocorrect, double-space period, auto-capitalize, smart punctuation spacing, swipe typing, swipe trail, spaces between swiped words, suggestion bar, next-word suggestions, learning, offensive-word blocking, space-bar cursor, number hints, key preview, vibration and sound. Changes apply the next time the keyboard opens.
+All behaviors have their own switches in settings: autocorrect, backspace-undoes-autocorrect, double-space period, auto-capitalize, smart punctuation spacing, swipe typing, swipe trail, spaces between swiped words, suggestion bar, next-word suggestions, learning, offensive-word blocking, space-bar cursor, number hints, key preview, vibration and sound. Changes apply immediately.
 
 ## What it learns (all stored in the app's private storage)
 
@@ -36,7 +38,7 @@ All behaviors have their own switches in settings: autocorrect, backspace-undoes
 - Which words you type after which, for next-word suggestions (a pair appears after you've used it twice).
 - Where your taps land on each key, so autocorrect adjusts to your aim.
 
-It never learns in password fields, email/URL fields, or fields that ask for no personalized learning (incognito modes). *Settings → Clear everything learned* erases it.
+Password fields get plain typing: no autocorrect, suggestions, capitalization changes or double-space period. It never learns in password fields, email/URL fields, or fields that ask for no personalized learning (incognito modes). *Settings → Clear everything learned* erases it.
 
 ## How it works
 

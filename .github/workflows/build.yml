@@ -21,6 +21,8 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools   # the default also asks for 'tools', which no longer exists
       - name: Logic tests (no Android needed)
         run: bash tools/run_tests.sh
       - name: Build
