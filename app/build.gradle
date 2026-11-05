@@ -1,0 +1,51 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'dev.localboard'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'dev.localboard'
+        minSdk 29          // Android 10+
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+        // not a test framework: drives the keyboard on an emulator and takes screenshots (tools/ci_screenshots.sh)
+        testInstrumentationRunner 'dev.localboard.shots.ShotRunner'
+    }
+
+    signingConfigs {
+        // A fixed debug key checked into the project, so every build can install
+        // over the previous one without wiping what the keyboard has learned.
+        // It is a debug key, not a secret; don't use it for a store release.
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    // targetSdk 34 is deliberate (see README); keep lint's store-policy checks from failing the build
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
