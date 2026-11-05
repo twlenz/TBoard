@@ -1262,6 +1262,7 @@ public final class LocalKeyboardService extends InputMethodService
         showEmoji(false);
         kv.setLayout(qwerty);
         kv.swipeEnabled = false;
+        kv.setStripVisible(false); // the search bar takes its place
         shiftState = 0;
         updateShift();
         updateSuggestions();
@@ -1309,7 +1310,7 @@ public final class LocalKeyboardService extends InputMethodService
         if (searchBar == null || emojiSearch == null) return;
         String q = searchQuery.toString();
         ArrayList<String> found = q.trim().isEmpty() ? new ArrayList<String>()
-                : emojiSearch.search(q, 60, e -> emoji == null || emoji.canShow(e));
+                : emojiSearch.search(q, 60, e -> emoji == null || emoji.canShow(e), emoji == null ? null : emoji.recents());
         searchBar.show(q, found);
     }
 
@@ -1321,6 +1322,7 @@ public final class LocalKeyboardService extends InputMethodService
         if (searchBar != null) searchBar.setVisibility(View.GONE);
         if (kv != null) {
             kv.swipeEnabled = allowSwipe;
+            kv.setStripVisible(true);
             kv.setLayout(qwerty);
         }
         showEmoji(toPanel);

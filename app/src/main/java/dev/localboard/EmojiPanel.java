@@ -169,7 +169,7 @@ final class EmojiPanel extends LinearLayout {
         }
     }
 
-    private ArrayList<String> recents() {
+    ArrayList<String> recents() {
         ArrayList<String> out = new ArrayList<>();
         String s = prefs.getString(RECENTS, "");
         for (String e : s.split(" ")) if (!e.isEmpty()) out.add(e);

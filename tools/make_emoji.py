@@ -56,7 +56,11 @@ for line in open(test_file, encoding='utf-8'):
     e = ''.join(chr(c) for c in cps)
     name = m.group(3).lower()
     words = []
-    for w in re.split(r"[\s:,“”\"()]+", name) + keywords.get(e.replace('️', ''), []):
+    for w in re.split(r"[\s:,“”\"()]+", name):
+        if w and w not in words:
+            words.append(w)
+    words.append('~')  # name words come before this marker, other keywords after
+    for w in keywords.get(e.replace('️', ''), []):
         if w and w not in words:
             words.append(w)
     groups[group].append((e, ' '.join(words)))
@@ -94,7 +98,7 @@ lines = ['package dev.localboard;', '',
 for g, _, _ in GROUPS:
     lines.append('            ' + chunks(' '.join(e for e, _ in groups[g])) + ',')
 lines += ['    };',
-          '    /** Search words per category: one entry per emoji (same order), entries separated by "|". */',
+          '    /** Search words per category: one entry per emoji (same order), entries separated by "|": name words, then "~", then keywords. */',
           '    static final String[] KEYWORDS = {']
 for g, _, _ in GROUPS:
     lines.append('            ' + chunks('|'.join(k for _, k in groups[g])) + ',')

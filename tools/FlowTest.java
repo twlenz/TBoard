@@ -137,10 +137,14 @@ public class FlowTest {
 
         // emoji search: letters go to the search box, not the app
         start(InputType.TYPE_CLASS_TEXT, 0);
-        ArrayList<String> hearts = new EmojiSearch().search("red heart", 5, null);
+        ArrayList<String> hearts = new EmojiSearch().search("red heart", 5, null, null);
         check2("search 'red heart' finds the red heart first (" + hearts + ")", !hearts.isEmpty() && hearts.get(0).equals("\u2764\ufe0f"));
-        ArrayList<String> thumbs = new EmojiSearch().search("thumbs up", 5, null);
+        ArrayList<String> thumbs = new EmojiSearch().search("thumbs up", 5, null, null);
         check2("search 'thumbs up' finds the thumbs up (" + thumbs + ")", !thumbs.isEmpty() && thumbs.get(0).equals("\ud83d\udc4d"));
+        ArrayList<String> heart = new EmojiSearch().search("heart", 5, null, null);
+        check2("search 'heart' puts the red heart first (" + heart + ")", !heart.isEmpty() && heart.get(0).equals("\u2764\ufe0f"));
+        ArrayList<String> cry = new EmojiSearch().search("cry", 3, null, null);
+        check2("search 'cry' finds crying faces (" + cry + ")", cry.contains("\ud83d\ude22") || cry.contains("\ud83d\ude2d"));
         s.onEmojiSearch();
         type("cat");
         check("search typing doesn't reach the text field", "");

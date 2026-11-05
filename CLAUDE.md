@@ -117,7 +117,7 @@ app/src/androidTest/.../ShotRunner.java   emulator screenshot driver (set as tes
 
 ## Emoji search
 
-The panel's magnifier calls `onEmojiSearch`: the letters come back, `searching` routes keys into `searchQuery` (delete with an empty query returns to the panel, enter or ✕ closes), and `EmojiSearchBar` shows results above the keys. The IME window grows by the bar's height while it's open.
+The panel's magnifier calls `onEmojiSearch`: the letters come back, `searching` routes keys into `searchQuery` (delete with an empty query returns to the panel, enter or ✕ closes), and `EmojiSearchBar` shows results above the keys. The IME window grows by the bar's height while it's open. Ranking (`EmojiSearch`): name-word match beats keyword match, whole word beats prefix; then recently used, Unicode's 2021 top-10 most-used emoji, shorter names, CLDR order. `EmojiData.KEYWORDS` entries are name words, `~`, keywords. The suggestion strip is hidden while searching (`KeyboardView.setStripVisible`).
 
 ## Measured results (simulated input, desktop JVM)
 
