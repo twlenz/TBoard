@@ -69,8 +69,10 @@ S['android.text.InputType'] = '''public interface InputType {
  TYPE_TEXT_FLAG_NO_SUGGESTIONS=0x80000, TYPE_TEXT_FLAG_CAP_SENTENCES=0x4000, TYPE_TEXT_FLAG_MULTI_LINE=0x20000; }'''
 S['android.text.TextUtils'] = 'public class TextUtils { public static final int CAP_MODE_SENTENCES = 0x4000; }'
 S['android.graphics.Canvas'] = '''public class Canvas { public void drawColor(int c){} public void drawRoundRect(RectF r, float rx, float ry, Paint p){}
- public void drawText(String t, float x, float y, Paint p){} public void drawRect(float l, float t, float r, float b, Paint p){} public void drawPath(Path p, Paint pa){} }'''
-S['android.graphics.Paint'] = '''public class Paint { public static final int ANTI_ALIAS_FLAG = 1; public Paint(int f){}
+ public void drawText(String t, float x, float y, Paint p){} public void drawRect(float l, float t, float r, float b, Paint p){} public void drawPath(Path p, Paint pa){}
+ public void drawCircle(float x, float y, float r, Paint p){} public void drawArc(RectF o, float s, float w, boolean c, Paint p){} public void drawLine(float a, float b, float c, float d, Paint p){} }'''
+S['android.graphics.Paint'] = '''public class Paint { public static final int ANTI_ALIAS_FLAG = 1; public Paint(int f){} public Paint(){}
+ private float sw; public float getStrokeWidth(){return sw;} public boolean hasGlyph(String s){return true;}
  public enum Align { LEFT, CENTER, RIGHT } public enum Style { FILL, STROKE } public enum Cap { BUTT, ROUND } public enum Join { MITER, ROUND }
  public static class FontMetrics { public float ascent, descent, top, bottom, leading; }
  public void setTextAlign(Align a){} public void setStyle(Style s){} public void setStrokeCap(Cap c){} public void setStrokeJoin(Join j){}
@@ -101,8 +103,9 @@ S['android.view.View'] = '''public class View { public static final int VISIBLE=
  public void setBackgroundColor(int c){} public void setOnClickListener(OnClickListener l){} private Object tag; public void setTag(Object o){tag=o;} public Object getTag(){return tag;}
  public void setPadding(int l, int t, int r, int b){} public void setAlpha(float a){} public void setFitsSystemWindows(boolean b){} public void setId(int id){}
  public void setEnabled(boolean e){} public static int generateViewId(){return 1;} public final <T extends View> T findViewById(int id){return null;}
- public void setHorizontalScrollBarEnabled(boolean b){} public android.content.Context getContext(){return null;} }'''
+ public void setHorizontalScrollBarEnabled(boolean b){} public void scrollTo(int x, int y){} public android.content.Context getContext(){return null;} }'''
 S['android.view.ViewGroup'] = '''public abstract class ViewGroup extends View { public ViewGroup(android.content.Context c){super(c);}
+ public int getChildCount(){return 0;} public View getChildAt(int i){return null;} public void removeAllViews(){}
  public void addView(View v){} public void addView(View v, LayoutParams p){}
  public static class LayoutParams { public static final int MATCH_PARENT=-1, WRAP_CONTENT=-2; public int width, height; public LayoutParams(int w, int h){} }
  public static class MarginLayoutParams extends LayoutParams { public int topMargin, leftMargin, rightMargin, bottomMargin; public MarginLayoutParams(int w, int h){super(w,h);} } }'''
@@ -111,7 +114,8 @@ S['android.view.inputmethod.EditorInfo'] = '''public class EditorInfo { public i
  IME_FLAG_NO_ENTER_ACTION=0x40000000, IME_FLAG_NO_PERSONALIZED_LEARNING=0x1000000; }'''
 S['android.view.inputmethod.InputConnection'] = '''public interface InputConnection { CharSequence getTextBeforeCursor(int n, int f); CharSequence getSelectedText(int f);
  boolean finishComposingText(); boolean setComposingText(CharSequence t, int p); boolean commitText(CharSequence t, int p);
- boolean deleteSurroundingText(int b, int a); boolean performEditorAction(int a); int getCursorCapsMode(int m); }'''
+ boolean deleteSurroundingText(int b, int a); boolean performEditorAction(int a); int getCursorCapsMode(int m);
+ CharSequence getTextAfterCursor(int n, int f); boolean beginBatchEdit(); boolean endBatchEdit(); }'''
 S['android.view.inputmethod.InputMethodManager'] = '''public final class InputMethodManager { public void showInputMethodPicker(){} public java.util.List<InputMethodInfo> getEnabledInputMethodList(){return null;} }'''
 S['android.view.inputmethod.InputMethodInfo'] = 'public final class InputMethodInfo { public String getPackageName(){return null;} }'
 S['android.inputmethodservice.InputMethodService'] = '''public class InputMethodService extends android.content.ContextWrapper {
@@ -147,7 +151,7 @@ S[W+'GridView'] = '''public class GridView extends AbsListView { public static f
  public void setNumColumns(int n){} public void setStretchMode(int m){} public void setVerticalSpacing(int s){} public void setHorizontalSpacing(int s){} public void setAdapter(ListAdapter a){} }'''
 S[W+'TextView'] = '''public class TextView extends android.view.View { public TextView(android.content.Context c){super(c);}
  public final void setText(CharSequence t){} public void setGravity(int g){} public void setTextSize(int u, float s){} public void setTypeface(android.graphics.Typeface t){}
- public void setTextColor(int c){} public void setAllCaps(boolean a){} public final void setHint(CharSequence h){} public void setInputType(int t){} public void setMinLines(int n){} }'''
+ public void setTextColor(int c){} public void setSingleLine(boolean b){} public void setHintTextColor(int c){} public void setAllCaps(boolean a){} public final void setHint(CharSequence h){} public void setInputType(int t){} public void setMinLines(int n){} }'''
 S[W+'Button'] = 'public class Button extends TextView { public Button(android.content.Context c){super(c);} }'
 S[W+'EditText'] = 'public class EditText extends TextView { public EditText(android.content.Context c){super(c);} }'
 S[W+'CompoundButton'] = '''public abstract class CompoundButton extends Button { public CompoundButton(android.content.Context c){super(c);}

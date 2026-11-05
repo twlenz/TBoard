@@ -102,7 +102,8 @@ public final class SettingsActivity extends Activity {
         section("About");
         root.addView(text("English word frequencies come from the wordfreq project (data licensed "
                 + "CC BY-SA 4.0, by Robyn Speer), filtered through the Hunspell en_US spelling "
-                + "dictionary (SCOWL). Offensive-word list from better_profanity (MIT).", 13, false));
+                + "dictionary (SCOWL). Offensive-word list from better_profanity (MIT). Emoji names and search "
+                + "keywords from Unicode emoji data and CLDR (Unicode License v3).", 13, false));
 
         Engine.get(this).whenReady(this::refresh);
     }

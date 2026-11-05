@@ -52,6 +52,7 @@ final class KeyboardView extends View {
     // settings
     boolean swipeEnabled = true, showTrail = true, spaceCursor = true, keyPreview = true, numberHints = true;
     private float rowDp = 54f;
+    private boolean stripVisible = true;
 
     // geometry in px
     private float unit;      // width of one key unit
@@ -147,6 +148,14 @@ final class KeyboardView extends View {
         }
     }
 
+    /** Hides the suggestion bar (while the emoji search bar is shown above the keys). */
+    void setStripVisible(boolean v) {
+        if (v != stripVisible) {
+            stripVisible = v;
+            requestLayout();
+        }
+    }
+
     void setLayout(KeyboardLayout l) {
         layout = l;
         cancelTouch();
@@ -183,7 +192,7 @@ final class KeyboardView extends View {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int w = MeasureSpec.getSize(widthMeasureSpec);
-        float strip = 44f * density;
+        float strip = stripVisible ? 44f * density : 0f;
         // landscape screens are short, so the keys get 75% of their portrait height there
         boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
         float row = landscape ? rowDp * 0.75f : rowDp;
@@ -195,7 +204,7 @@ final class KeyboardView extends View {
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         unit = w / 10f;
-        stripH = 44f * density;
+        stripH = stripVisible ? 44f * density : 0f;
         keysTop = stripH;
         rowH = (h - stripH - 6f * density) / 4f;
         if (listener != null) listener.onGeometryChanged(buildGeometry());
@@ -236,7 +245,7 @@ final class KeyboardView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         canvas.drawColor(theme.background);
-        drawStrip(canvas);
+        if (stripVisible) drawStrip(canvas);
         for (KeyboardLayout.Key k : layout.keys) drawKey(canvas, k);
         if (swiping && showTrail && pathN > 1) drawTrail(canvas);
         if (debuggable) logGeometry();
@@ -305,6 +314,10 @@ final class KeyboardView extends View {
         keyPaint.setColor(fill);
         canvas.drawRoundRect(rect, radius, radius, keyPaint);
 
+        if (k.code == KeyboardLayout.EMOJI) {
+            drawSmiley(canvas, rect.centerX(), rect.centerY(), Math.min(rect.width(), rect.height()) * 0.24f, fg);
+            return;
+        }
         String label = k.label;
         float size;
         if (k.code == KeyboardLayout.ENTER) {
@@ -336,6 +349,20 @@ final class KeyboardView extends View {
                 canvas.drawText(hint, rect.right - 6f * density, rect.top + 11f * density, hintPaint);
             }
         }
+    }
+
+    /** A line-drawn smiley in the key text color, so the emoji key matches the other keys. */
+    private void drawSmiley(Canvas canvas, float cx, float cy, float r, int color) {
+        outlinePaint.setColor(color);
+        float stroke = outlinePaint.getStrokeWidth();
+        outlinePaint.setStrokeWidth(Math.max(1.5f, 1.8f * density));
+        canvas.drawCircle(cx, cy, r, outlinePaint);
+        rect.set(cx - r * 0.55f, cy - r * 0.5f, cx + r * 0.55f, cy + r * 0.55f);
+        canvas.drawArc(rect, 25f, 130f, false, outlinePaint);
+        outlinePaint.setStrokeWidth(stroke);
+        keyPaint.setColor(color);
+        canvas.drawCircle(cx - r * 0.35f, cy - r * 0.25f, r * 0.12f, keyPaint);
+        canvas.drawCircle(cx + r * 0.35f, cy - r * 0.25f, r * 0.12f, keyPaint);
     }
 
     private void drawTrail(Canvas canvas) {

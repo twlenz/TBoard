@@ -26,6 +26,8 @@ public final class UserModel {
 
     private final HashMap<String, Entry> words = new HashMap<>();
     private final HashMap<String, HashMap<String, Integer>> bigrams = new HashMap<>();
+    /** Misspellings this person fixed by hand, and what they changed them to. */
+    private final HashMap<String, String> corrections = new HashMap<>();
     private long total;
     private final float[] offX = new float[26];
     private final float[] offY = new float[26];
@@ -35,6 +37,7 @@ public final class UserModel {
 
     private static final int MAX_WORDS = 40000;
     private static final int MAX_FOLLOWERS = 60;
+    private static final int MAX_CORRECTIONS = 2000;
     private static final float MAX_OFFSET = 0.35f;
 
     // ---------------------------------------------------------------- learning
@@ -104,8 +107,33 @@ public final class UserModel {
             words.put(k, e);
         }
         e.confirmed = true;
+        corrections.remove(k); // keeping the word overrides an earlier fix of it
         knownVersion++;
         dirty = true;
+    }
+
+    /**
+     * Remembers that this person changed {@code typo} into {@code fix} by hand, so autocorrect
+     * makes that change by itself next time. The typo stops counting as a known word.
+     */
+    public void learnCorrection(String typo, String fix) {
+        String t = typo.toLowerCase(Locale.ROOT), f = fix.toLowerCase(Locale.ROOT);
+        if (t.equals(f)) return;
+        if (corrections.size() >= MAX_CORRECTIONS && !corrections.containsKey(t)) {
+            corrections.remove(corrections.keySet().iterator().next());
+        }
+        corrections.put(t, f);
+        if (words.remove(t) != null) knownVersion++;
+        dirty = true;
+    }
+
+    /** The fix this person taught for {@code lower}, or null. */
+    public String correctionFor(String lower) {
+        return corrections.get(lower);
+    }
+
+    public int correctionCount() {
+        return corrections.size();
     }
 
     /** Running average of where this person's taps land relative to each key's center. */
@@ -216,6 +244,7 @@ public final class UserModel {
         knownVersion++;
         words.clear();
         bigrams.clear();
+        corrections.clear();
         total = 0;
         for (int i = 0; i < 26; i++) {
             offX[i] = 0;
@@ -242,6 +271,9 @@ public final class UserModel {
                 sb.append("B\t").append(clean(b.getKey())).append('\t').append(clean(f.getKey()))
                         .append('\t').append(f.getValue()).append('\n');
             }
+        }
+        for (Map.Entry<String, String> c : corrections.entrySet()) {
+            sb.append("C\t").append(clean(c.getKey())).append('\t').append(clean(c.getValue())).append('\n');
         }
         for (int i = 0; i < 26; i++) {
             if (offN[i] == 0) continue;
@@ -280,6 +312,9 @@ public final class UserModel {
                         f.put(p[2], Integer.parseInt(p[3]));
                         break;
                     }
+                    case "C":
+                        corrections.put(p[1], p[2]);
+                        break;
                     case "O": {
                         int i = Dictionary.letterIndex(p[1].charAt(0));
                         if (i >= 0) {

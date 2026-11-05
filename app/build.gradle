@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId 'dev.localboard'
-        minSdk 29          // Android 10+
+        minSdk 23          // Android 6.0+; lint's NewApi check (CI) keeps newer APIs behind version checks
         targetSdk 34
         versionCode 1
         versionName '1.0'
@@ -41,7 +41,9 @@ android {
     // targetSdk 34 is deliberate (see README); keep lint's store-policy checks from failing the build
     lint {
         checkReleaseBuilds false
-        abortOnError false
+        // CI runs lintDebug: any use of an API newer than minSdk without a version check fails the build
+        checkOnly 'NewApi'
+        abortOnError true
     }
 
     compileOptions {

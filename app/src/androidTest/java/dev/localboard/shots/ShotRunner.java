@@ -157,8 +157,15 @@ public class ShotRunner extends Instrumentation {
             tapSpecial(3f, 3);
             sleep(600);
             shot("13_emoji");
-            // the ABC button is at the bottom-left of the emoji panel
-            tap(vx + 30 * density(), vy + rowsBottom() - 23 * density());
+            // the search button is just right of ABC in the emoji panel's bottom bar
+            sh("logcat -c");
+            tap(vx + 83 * density(), vy + rowsBottom() - 20 * density());
+            sleep(600);
+            tryReadGeometry(8); // the keys normally stay put; re-read in case they moved
+            type("heart");
+            sleep(400);
+            shot("13b_emoji_search");
+            tapSpecial(9.25f, 3); // enter closes search, back to the letters
             sleep(400);
         });
         step("14_dark", () -> {
@@ -239,6 +246,10 @@ public class ShotRunner extends Instrumentation {
 
     private boolean tryReadGeometry(int tries) throws Exception {
         for (int t = 0; t < tries; t++) {
+            // Any settings change makes the keyboard redraw, and it logs its position when drawing.
+            // Without this, a window moved after its last draw would leave a stale position.
+            prefs.edit().putLong("shot_refresh", SystemClock.uptimeMillis()).commit();
+            sleep(150);
             String log = sh("logcat -d -s LBGEOM:I");
             String last = null;
             for (String line : log.split("\n")) {

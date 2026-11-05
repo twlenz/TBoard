@@ -1,6 +1,6 @@
 # LocalBoard
 
-An Android keyboard (Android 10+) that does everything on the phone: tap typing with autocorrect, swipe typing, next-word suggestions, an emoji panel, light/dark/black themes, and learning from your typing. The app requests **no permissions at all**, including no internet access, and has cloud backup turned off.
+An Android keyboard (Android 6.0 and newer) that does everything on the phone: tap typing with autocorrect, swipe typing, next-word suggestions, an emoji panel, light/dark/black themes, and learning from your typing. The app requests **no permissions at all**, including no internet access, and has cloud backup turned off.
 
 ## Getting the APK
 
@@ -23,16 +23,20 @@ Every build is signed with the same key (`app/debug.keystore`), so a new APK ins
 
 ## Using it
 
-- **Swipe** across letters to type a word. Swiped words get spaces between them automatically; one backspace removes a whole swiped word. The suggestion bar shows alternatives; tap one to swap it in.
+- **Swipe** across letters to type a word. Swiped words get spaces between them automatically. Backspace deletes a swiped word letter by letter. The suggestion bar shows alternatives; tap one to swap it in.
 - **Autocorrect** happens on space or punctuation. The suggestion bar shows the correction in bold and what you typed in quotes; tap the quoted one to keep your spelling. Backspace right after a correction restores what you typed, and the keyboard then stops correcting that word.
+- **Fixing a word later teaches it.** Backspacing into a word, selecting it, or tapping inside it lets you edit it. If you change a misspelling into a real word ("hte" → "hate"), autocorrect makes that same change by itself from then on. If you change an autocorrection back to what you typed, it stops making that correction.
+- **Emoji:** tap the smiley key. The magnifier next to ABC searches emoji by name ("heart", "thumbs up"); the letter keys type into the search box. Emoji the phone can't display are hidden.
 - **Long-press** a top-row letter for its number, a vowel or certain consonants (s, c, n, z, l) for accents, the period for more punctuation, and the comma for settings.
 - **Long-press space** to switch keyboards; **slide on space** to move the cursor.
 - **Double-tap shift** for caps lock.
+- **Double-space period** is off by default. When it's on, two spaces right after a backspace never add a period.
 
-All behaviors have their own switches in settings: autocorrect, backspace-undoes-autocorrect, double-space period, auto-capitalize, smart punctuation spacing, swipe typing, swipe trail, spaces between swiped words, suggestion bar, next-word suggestions, learning, offensive-word blocking, space-bar cursor, number hints, key preview, vibration and sound. Changes apply immediately.
+All behaviors have their own switches in settings: autocorrect, backspace-undoes-autocorrect, double-space period, auto-capitalize, smart punctuation spacing, swipe typing, swipe trail, spaces between swiped words, suggestion bar, next-word suggestions, learning, offensive-word blocking, space-bar cursor, number hints, key preview, vibration and sound. Changes apply immediately. Off by default: double-space period, offensive-word blocking, vibration and sound.
 
 ## What it learns (all stored in the app's private storage)
 
+- Misspellings you fixed by hand, and what you changed them to.
 - Words you use that aren't in the dictionary. A word you type twice, pick from the bar, or restore with backspace stops being autocorrected.
 - How often you use each word, which raises it in suggestions and in swipe results.
 - Which words you type after which, for next-word suggestions (a pair appears after you've used it twice).
@@ -53,4 +57,4 @@ Password fields get plain typing: no autocorrect, suggestions, capitalization ch
 - English only. No voice typing, clipboard history or GIFs.
 - `targetSdk` is 34 so Android 15's edge-to-edge layout rules don't apply to the keyboard window. This matters only for publishing on the Play Store, which this app isn't meant for.
 
-Word frequencies: wordfreq by Robyn Speer, data CC BY-SA 4.0. Spelling filter: Hunspell en_US (SCOWL). Offensive-word list: better_profanity (MIT).
+Word frequencies: wordfreq by Robyn Speer, data CC BY-SA 4.0. Spelling filter: Hunspell en_US (SCOWL). Offensive-word list: better_profanity (MIT). Emoji list and search keywords: Unicode emoji data and CLDR annotations (Unicode License v3).

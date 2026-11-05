@@ -15,6 +15,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -31,7 +32,7 @@ import dev.localboard.engine.TapDecoder;
  * space, punctuation, enter, or a suggestion tap.
  */
 public final class LocalKeyboardService extends InputMethodService
-        implements KeyboardView.Listener, EmojiPanel.Listener {
+        implements KeyboardView.Listener, EmojiPanel.Listener, EmojiSearchBar.Listener {
 
     private SharedPreferences prefs;
     private Engine engine;
@@ -43,6 +44,11 @@ public final class LocalKeyboardService extends InputMethodService
     private FrameLayout container;
     private KeyboardView kv;
     private EmojiPanel emoji;
+    // emoji search: the letter keys type into the search bar instead of the app
+    private EmojiSearchBar searchBar;
+    private EmojiSearch emojiSearch;
+    private boolean searching;
+    private final StringBuilder searchQuery = new StringBuilder();
     private final KeyboardLayout qwerty = KeyboardLayout.qwerty();
     private final KeyboardLayout symbols = KeyboardLayout.symbols();
     private final KeyboardLayout symbols2 = KeyboardLayout.symbols2();
@@ -68,6 +74,23 @@ public final class LocalKeyboardService extends InputMethodService
     // state right after a word was committed
     private String corrOriginal, corrResult, corrSep, corrPrev;
     private boolean spaceWasAuto, pendingSpace, lastWasSpace;
+    /** Set by backspace, cleared by any other character: two spaces after a backspace never make a period. */
+    private boolean doubleSpaceBlocked;
+
+    // correcting words that were already committed
+    /** A committed word reopened for editing (backspace into it, or typing at its end), as it was before. */
+    private String resumeOriginal;
+    /** Text before the cursor when a reopened word was deleted completely; a new word typed right there replaces it. */
+    private String resumeEmptiedBefore;
+    /** A word being edited in the middle (cursor inside it): how it looked before, and now. */
+    private String editOriginal, editCurrent;
+    /** Recent autocorrections, corrected word -> what was typed, to learn when one is fixed by hand. */
+    private final java.util.LinkedHashMap<String, String> recentCorrections = new java.util.LinkedHashMap<String, String>() {
+        @Override
+        protected boolean removeEldestEntry(java.util.Map.Entry<String, String> e) {
+            return size() > 30;
+        }
+    };
 
     // shift: 0 off, 1 next letter, 2 caps lock
     private int shiftState;
@@ -129,8 +152,18 @@ public final class LocalKeyboardService extends InputMethodService
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         container.addView(emoji, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
+        searchBar = new EmojiSearchBar(this);
+        searchBar.setListener(this);
+        searchBar.setVisibility(View.GONE);
+        searching = false;
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.addView(searchBar, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+        root.addView(container, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
         applyPrefs();
-        return container;
+        return root;
     }
 
     private void applyPrefs() {
@@ -147,6 +180,7 @@ public final class LocalKeyboardService extends InputMethodService
             KeyboardTheme theme = KeyboardTheme.resolve(this, Prefs.theme(prefs));
             kv.setTheme(theme);
             emoji.setTheme(theme);
+            if (searchBar != null) searchBar.setTheme(theme);
             String h = Prefs.height(prefs);
             kv.setRowHeightDp("short".equals(h) ? 48f : "tall".equals(h) ? 62f : 55f);
             kv.showTrail = Prefs.on(prefs, Prefs.SWIPE_TRAIL);
@@ -169,6 +203,7 @@ public final class LocalKeyboardService extends InputMethodService
                     || cls == InputType.TYPE_CLASS_DATETIME;
             kv.setLayout(numeric ? symbols : qwerty);
             kv.setEnterLabel(enterLabel(info));
+            endSearch(false);
             showEmoji(false);
         }
         resetWordState();
@@ -178,6 +213,9 @@ public final class LocalKeyboardService extends InputMethodService
         lastWasSpace = false;
         shiftState = 0;
         suppressAutoShift = false;
+        doubleSpaceBlocked = false;
+        resumeOriginal = resumeEmptiedBefore = null;
+        editOriginal = editCurrent = null;
         updateShift();
         updateSuggestions();
     }
@@ -214,12 +252,15 @@ public final class LocalKeyboardService extends InputMethodService
     public void onFinishInputView(boolean finishingInput) {
         super.onFinishInputView(finishingInput);
         if (kv != null) kv.cancelTouch();
+        if (searching) endSearch(false);
         engine.save();
     }
 
     @Override
     public void onFinishInput() {
         super.onFinishInput();
+        finishEdit();
+        resumeOriginal = null;
         resetWordState();
     }
 
@@ -240,11 +281,28 @@ public final class LocalKeyboardService extends InputMethodService
                 if (!stillHere) ic.finishComposingText();
             }
             if (!stillHere) {
+                // a reopened word the person finished editing and then left: learn from it as it stands
+                if (resumeOriginal != null) {
+                    String now = composing.toString();
+                    if (allowLearning && lex != null && !resumeOriginal.equalsIgnoreCase(now) && isWordOnly(now)) {
+                        lex.user.learn(null, storageForm(now), false);
+                    }
+                    learnFromEdit(null, resumeOriginal, now);
+                }
                 resetWordState();
+                resumeOriginal = null;
                 corrResult = null;
                 pendingSpace = false;
                 spaceWasAuto = false;
                 updateSuggestions();
+            }
+        }
+        if (composing.length() == 0 && editOriginal != null) {
+            // the cursor left the word being edited: learn from what it became
+            InputConnection ic = getCurrentInputConnection();
+            if (ic != null) {
+                String[] w = wordAround(ic);
+                if (!(w[0] + w[1]).equals(editCurrent)) finishEdit();
             }
         }
         if (composing.length() == 0) updateShift();
@@ -274,6 +332,7 @@ public final class LocalKeyboardService extends InputMethodService
 
     @Override
     public void onKey(int code, float x, float y) {
+        if (searching && searchKey(code)) return;
         if (code != KeyboardLayout.SHIFT && code != KeyboardLayout.DELETE) corrResult = null;
         switch (code) {
             case KeyboardLayout.SHIFT:
@@ -308,6 +367,11 @@ public final class LocalKeyboardService extends InputMethodService
 
     @Override
     public void onText(String text) {
+        if (searching) {
+            searchQuery.append(text.toLowerCase(Locale.ROOT));
+            updateSearch();
+            return;
+        }
         corrResult = null;
         if (text.length() == 1) {
             handleChar(text.charAt(0), Float.NaN, Float.NaN);
@@ -333,6 +397,13 @@ public final class LocalKeyboardService extends InputMethodService
         }
         boolean letter = Character.isLetter(c);
         boolean joins = composing.length() > 0 && (c == '\'' || c == '-' || Character.isDigit(c));
+        if (composing.length() == 0 && (letter || c == '\'')) {
+            InputConnection ic = getCurrentInputConnection();
+            if (ic != null && letterAfterCursor(ic)) {
+                insertInsideWord(ic, c);
+                return;
+            }
+        }
         if (letter || joins) {
             appendToWord(c, x, y);
         } else if (Character.isDigit(c)) {
@@ -351,12 +422,16 @@ public final class LocalKeyboardService extends InputMethodService
         if (ic == null) return;
         if (fromSwipe) finishWord(false, ""); // tapping after a swipe starts a new word
         if (composing.length() == 0) {
-            if (pendingSpace && prefAutoSpace) {
-                insertPendingSpace(ic);
-                updateShift(); // the new space may start a sentence
+            boolean reopened = !(pendingSpace && prefAutoSpace) && reopenForTyping(ic);
+            if (!reopened) {
+                keepResumeOnlyIfHere(ic);
+                if (pendingSpace && prefAutoSpace) {
+                    insertPendingSpace(ic);
+                    updateShift(); // the new space may start a sentence
+                }
             }
             pendingSpace = false;
-            firstCharAuto = autoShift && shiftState == 0;
+            firstCharAuto = !reopened && autoShift && shiftState == 0;
         }
         boolean shifted = shiftState > 0 || autoShift;
         composing.append(shifted ? Character.toUpperCase(c) : c);
@@ -372,10 +447,11 @@ public final class LocalKeyboardService extends InputMethodService
     private void handleSpace() {
         InputConnection ic = getCurrentInputConnection();
         if (ic == null) return;
+        if (composing.length() == 0) endEditAtSeparator(ic);
         if (composing.length() > 0) {
             finishWord(true, " ");
             spaceWasAuto = true;
-        } else if (prefDoubleSpace && allowSmartPunct && lastWasSpace && endsWithWordAndSpace(ic)) {
+        } else if (prefDoubleSpace && allowSmartPunct && !doubleSpaceBlocked && lastWasSpace && endsWithWordAndSpace(ic)) {
             ic.deleteSurroundingText(1, 0);
             ic.commitText(". ", 1);
             spaceWasAuto = true;
@@ -405,6 +481,8 @@ public final class LocalKeyboardService extends InputMethodService
         if (ic == null) return;
         String s = String.valueOf(c);
         boolean closing = ".,?!:;)".indexOf(c) >= 0;
+        doubleSpaceBlocked = false;
+        if (composing.length() == 0) endEditAtSeparator(ic);
         if (composing.length() > 0) {
             finishWord(true, s);
             spaceWasAuto = false;
@@ -437,6 +515,7 @@ public final class LocalKeyboardService extends InputMethodService
     private void handleEnter() {
         InputConnection ic = getCurrentInputConnection();
         if (ic == null || editor == null) return;
+        if (composing.length() == 0) endEditAtSeparator(ic);
         if (composing.length() > 0) finishWord(true, "");
         corrResult = null;
         int action = editor.imeOptions & EditorInfo.IME_MASK_ACTION;
@@ -456,23 +535,9 @@ public final class LocalKeyboardService extends InputMethodService
         InputConnection ic = getCurrentInputConnection();
         if (ic == null) return;
         lastWasSpace = false;
+        doubleSpaceBlocked = true;
         if (composing.length() > 0) {
-            if (fromSwipe) {
-                // a swiped word goes away in one press
-                resetWordState();
-                ic.setComposingText("", 1);
-                ic.finishComposingText();
-                pendingSpace = false;
-            } else {
-                composing.deleteCharAt(composing.length() - 1);
-                if (!points.isEmpty()) points.remove(points.size() - 1);
-                if (composing.length() == 0) {
-                    ic.commitText("", 1);
-                    resetWordState();
-                } else {
-                    ic.setComposingText(composing, 1);
-                }
-            }
+            deleteFromComposing(ic);
         } else if (corrResult != null && prefUndo) {
             String expect = corrResult + corrSep;
             CharSequence before = ic.getTextBeforeCursor(expect.length(), 0);
@@ -502,10 +567,55 @@ public final class LocalKeyboardService extends InputMethodService
         updateSuggestions();
     }
 
+    /** Deletes the last letter of the word being typed (a swiped word too, letter by letter). */
+    private void deleteFromComposing(InputConnection ic) {
+        if (fromSwipe) {
+            fromSwipe = false;
+            pickedExplicit = false;
+            swipeAlts.clear();
+            points.clear();
+            for (int i = 0; i < composing.length(); i++) points.add(null);
+        }
+        composing.deleteCharAt(composing.length() - 1);
+        if (!points.isEmpty()) points.remove(points.size() - 1);
+        if (composing.length() == 0) {
+            ic.commitText("", 1);
+            resetWordState();
+            if (resumeOriginal != null) resumeEmptiedBefore = textBefore(ic);
+        } else {
+            ic.setComposingText(composing, 1);
+        }
+    }
+
+    /**
+     * Deletes one character. Plain letters and punctuation are deleted directly, so the text is up to
+     * date at once and the word before the cursor can be reopened for correcting; anything else
+     * (emoji, an empty field) goes as a backspace key so the app handles it.
+     */
     private void deleteBeforeCursor(InputConnection ic) {
         CharSequence sel = ic.getSelectedText(0);
-        if (sel != null && sel.length() > 0) ic.commitText("", 1);
-        else sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL);
+        if (sel != null && sel.length() > 0) {
+            ic.commitText("", 1);
+            return;
+        }
+        CharSequence b = ic.getTextBeforeCursor(1, 0);
+        if (rawInput || b == null || b.length() == 0 || b.charAt(0) >= 0x300) {
+            sendDownUpKeyEvents(KeyEvent.KEYCODE_DEL);
+            return;
+        }
+        String[] w = wordAround(ic);
+        boolean inside = !w[0].isEmpty() && !w[1].isEmpty();
+        if (!w[0].isEmpty() && w[1].isEmpty() && reopenWordBeforeCursor(ic)) {
+            deleteFromComposing(ic); // at the end of a word: reopen it whole, then delete its last letter
+            return;
+        }
+        ic.deleteSurroundingText(1, 0);
+        if (inside) {
+            String[] now = wordAround(ic);
+            noteEdit(w[0] + w[1], now[0] + now[1]);
+        } else {
+            reopenWordBeforeCursor(ic);
+        }
     }
 
     private void handleShift() {
@@ -528,6 +638,7 @@ public final class LocalKeyboardService extends InputMethodService
     private void afterNonSpace() {
         spaceWasAuto = false;
         lastWasSpace = false;
+        doubleSpaceBlocked = false;
     }
 
     private void insertPendingSpace(InputConnection ic) {
@@ -545,6 +656,8 @@ public final class LocalKeyboardService extends InputMethodService
         String prev = previousWord();
         String fin = typed;
         boolean corrected = false;
+        String reopened = resumeOriginal;
+        resumeOriginal = resumeEmptiedBefore = null;
         if (!fromSwipe && lex != null && allowCorrection) {
             TapDecoder.Result r = decodeCurrent(prev);
             if (correct && allowCorrection && !pickedExplicit && r.correction != null && !hasInnerCaps(typed)) {
@@ -562,11 +675,188 @@ public final class LocalKeyboardService extends InputMethodService
             corrResult = fin;
             corrSep = sep;
             corrPrev = prev;
+            recentCorrections.put(fin.toLowerCase(Locale.ROOT), typed.toLowerCase(Locale.ROOT));
         } else {
             corrResult = null;
         }
+        if (reopened != null && reopened.equalsIgnoreCase(fin)) {
+            resetWordState(); // reopened and left as it was: it was already learned the first time
+            return;
+        }
         learnWord(prev, fin, typed, corrected, pickedExplicit);
+        if (reopened != null) learnFromEdit(prev, reopened, fin);
         resetWordState();
+    }
+
+    // ================================================================ correcting committed words
+
+    private static boolean isWordChar(char c) {
+        return Character.isLetter(c) || c == '\'';
+    }
+
+    private static boolean isWordOnly(String s) {
+        if (s.isEmpty()) return false;
+        for (int i = 0; i < s.length(); i++) if (!isWordChar(s.charAt(i))) return false;
+        return true;
+    }
+
+    /** The word characters just before and just after the cursor. */
+    private static String[] wordAround(InputConnection ic) {
+        CharSequence b = ic.getTextBeforeCursor(48, 0), a = ic.getTextAfterCursor(48, 0);
+        String before = b == null ? "" : b.toString(), after = a == null ? "" : a.toString();
+        int i = before.length();
+        while (i > 0 && isWordChar(before.charAt(i - 1))) i--;
+        int j = 0;
+        while (j < after.length() && isWordChar(after.charAt(j))) j++;
+        return new String[]{before.substring(i), after.substring(0, j)};
+    }
+
+    private static boolean letterAfterCursor(InputConnection ic) {
+        CharSequence a = ic.getTextAfterCursor(1, 0);
+        return a != null && a.length() == 1 && Character.isLetter(a.charAt(0));
+    }
+
+    private static String textBefore(InputConnection ic) {
+        CharSequence b = ic.getTextBeforeCursor(24, 0);
+        return b == null ? "" : b.toString();
+    }
+
+    /**
+     * When typing starts with no word in progress: if a whole word is selected, it is being retyped;
+     * if the cursor is at the end of a word, typing continues that word. Either way the old word is
+     * remembered so a correction can be learned. Returns true if a word was reopened.
+     */
+    private boolean reopenForTyping(InputConnection ic) {
+        CharSequence sel = ic.getSelectedText(0);
+        if (sel != null && sel.length() > 0) {
+            String[] w = wordAround(ic);
+            if (isWordOnly(sel.toString()) && w[0].isEmpty() && w[1].isEmpty()) {
+                finishEdit();
+                resumeOriginal = sel.toString(); // the composing text replaces the selection
+                resumeEmptiedBefore = null;
+                return true;
+            }
+            return false;
+        }
+        return reopenWordBeforeCursor(ic);
+    }
+
+    /** Turns the word just before the cursor back into the word being typed. */
+    private boolean reopenWordBeforeCursor(InputConnection ic) {
+        if (rawInput || composing.length() > 0) return false;
+        String[] w = wordAround(ic);
+        String word = w[0];
+        if (word.isEmpty() || !w[1].isEmpty() || word.length() > 40 || !Character.isLetter(word.charAt(0))) return false;
+        String original = word;
+        if (editOriginal != null) {
+            if (word.equals(editCurrent)) {
+                original = editOriginal; // finishing an edit made in the middle of this word
+                editOriginal = editCurrent = null;
+            } else {
+                finishEdit();
+            }
+        }
+        ic.beginBatchEdit();
+        ic.deleteSurroundingText(word.length(), 0);
+        ic.setComposingText(word, 1);
+        ic.endBatchEdit();
+        resetWordState();
+        composing.append(word);
+        for (int i = 0; i < word.length(); i++) points.add(null);
+        resumeOriginal = original;
+        resumeEmptiedBefore = null;
+        firstCharAuto = false;
+        return true;
+    }
+
+    /** A reopened word deleted completely carries over only to a new word typed in the same place. */
+    private void keepResumeOnlyIfHere(InputConnection ic) {
+        if (resumeOriginal != null && (resumeEmptiedBefore == null || !resumeEmptiedBefore.equals(textBefore(ic)))) {
+            resumeOriginal = null;
+        }
+        resumeEmptiedBefore = null;
+    }
+
+    /** Types a character in the middle of an existing word, without autocorrect, and tracks the edit. */
+    private void insertInsideWord(InputConnection ic, char c) {
+        String[] w = wordAround(ic);
+        CharSequence sel = ic.getSelectedText(0);
+        String selected = sel == null ? "" : sel.toString();
+        boolean shifted = shiftState > 0 || autoShift;
+        char out = shifted ? Character.toUpperCase(c) : c;
+        ic.commitText(String.valueOf(out), 1);
+        if (selected.isEmpty() || isWordOnly(selected)) noteEdit(w[0] + selected + w[1], w[0] + out + w[1]);
+        corrResult = null;
+        pendingSpace = false;
+        if (shiftState == 1) shiftState = 0;
+        suppressAutoShift = false;
+        afterNonSpace();
+        updateShift();
+        updateSuggestions();
+    }
+
+    private void noteEdit(String before, String after) {
+        if (editOriginal == null || !before.equals(editCurrent)) {
+            finishEdit();
+            editOriginal = before;
+        }
+        editCurrent = after;
+    }
+
+    /** A space or punctuation typed while editing inside a word: learn if the cursor is at the word's end. */
+    private void endEditAtSeparator(InputConnection ic) {
+        if (editOriginal == null) return;
+        if (letterAfterCursor(ic)) editOriginal = editCurrent = null; // splitting the word, not correcting it
+        else finishEdit();
+    }
+
+    private void finishEdit() {
+        String o = editOriginal, n = editCurrent;
+        editOriginal = editCurrent = null;
+        if (o == null || n == null || o.equals(n)) return;
+        if (allowLearning && lex != null && n.length() >= 2 && isWordOnly(n)) lex.user.learn(null, storageForm(n), false);
+        learnFromEdit(null, o, n);
+    }
+
+    /**
+     * The person changed a committed word {@code orig} into {@code now} by hand. If {@code orig} was an
+     * autocorrection and they put back what they typed, stop making that correction. If it was a
+     * misspelling and {@code now} is a real word, autocorrect that misspelling to it from now on.
+     */
+    private void learnFromEdit(String prev, String orig, String now) {
+        if (!allowLearning || lex == null) return;
+        String o = orig.toLowerCase(Locale.ROOT), n = now.toLowerCase(Locale.ROOT);
+        if (o.equals(n) || n.length() < 2 || !isWordOnly(o) || !isWordOnly(n)) return;
+        lex.user.unlearn(prev, storageForm(orig));
+        String typed = recentCorrections.get(o);
+        String source = typed != null ? typed : o;
+        if (source.equals(n)) {
+            lex.user.confirm(storageForm(now));
+            return;
+        }
+        if (source.length() >= 2 && !lex.isKnown(source) && lex.isKnown(n) && closeEnough(source, n)) {
+            lex.user.learnCorrection(source, n);
+        }
+    }
+
+    /** True if b is a and a few typos away (at most 2 edits, and not more than a third of the word). */
+    static boolean closeEnough(String a, String b) {
+        int limit = Math.min(2, Math.max(1, Math.max(a.length(), b.length()) / 3));
+        int n = a.length(), m = b.length();
+        if (Math.abs(n - m) > limit) return false;
+        int[][] d = new int[n + 1][m + 1];
+        for (int i = 0; i <= n; i++) d[i][0] = i;
+        for (int j = 0; j <= m; j++) d[0][j] = j;
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= m; j++) {
+                int cost = a.charAt(i - 1) == b.charAt(j - 1) ? 0 : 1;
+                d[i][j] = Math.min(Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1), d[i - 1][j - 1] + cost);
+                if (i > 1 && j > 1 && a.charAt(i - 1) == b.charAt(j - 2) && a.charAt(i - 2) == b.charAt(j - 1)) {
+                    d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+                }
+            }
+        }
+        return d[n][m] <= limit;
     }
 
     private void learnWord(String prev, String fin, String typed, boolean corrected, boolean explicit) {
@@ -685,6 +975,7 @@ public final class LocalKeyboardService extends InputMethodService
 
     @Override
     public boolean onSwipe(float[] xs, float[] ys, int count) {
+        if (searching) return false;
         InputConnection ic = getCurrentInputConnection();
         if (ic == null || swipe == null || !allowSwipe) return false;
         // Decode before touching the text: if nothing matches, the view types the key the
@@ -708,6 +999,7 @@ public final class LocalKeyboardService extends InputMethodService
                 needSpace = !Character.isWhitespace(ch) && "([{\"'@#/-“‘".indexOf(ch) < 0;
             }
         }
+        keepResumeOnlyIfHere(ic);
         if (needSpace && prefAutoSpace) ic.commitText(" ", 1);
         pendingSpace = false;
         updateShift(); // capitalize if the swipe starts a sentence
@@ -747,6 +1039,7 @@ public final class LocalKeyboardService extends InputMethodService
 
     @Override
     public void onSuggestionPicked(int index) {
+        if (searching) return;
         InputConnection ic = getCurrentInputConnection();
         String word = strip[index];
         if (ic == null || word == null) return;
@@ -770,13 +1063,17 @@ public final class LocalKeyboardService extends InputMethodService
             pickedExplicit = true;
             String typed = composing.toString();
             String prev = previousWord();
+            String reopened = resumeOriginal;
+            resumeOriginal = resumeEmptiedBefore = null;
             ic.commitText(word + " ", 1);
             learnWord(prev, word, typed, false, true);
+            if (reopened != null) learnFromEdit(prev, reopened, word);
             resetWordState();
             spaceWasAuto = true;
             lastWasSpace = false;
         }
         pendingSpace = false;
+        doubleSpaceBlocked = false;
         updateShift();
         updateSuggestions();
     }
@@ -784,7 +1081,7 @@ public final class LocalKeyboardService extends InputMethodService
     private void updateSuggestions() {
         if (kv == null) return;
         strip[0] = strip[1] = strip[2] = null;
-        if (!allowSuggestions || lex == null) {
+        if (!allowSuggestions || lex == null || searching) {
             kv.setSuggestions(null, null, null, -1);
             return;
         }
@@ -858,7 +1155,7 @@ public final class LocalKeyboardService extends InputMethodService
 
     private void updateShift() {
         boolean auto = false;
-        if (allowAutoCap && shiftState == 0 && !suppressAutoShift && composing.length() == 0
+        if (!searching && allowAutoCap && shiftState == 0 && !suppressAutoShift && composing.length() == 0
                 && kv != null && kv.getLayout().letters) {
             InputConnection ic = getCurrentInputConnection();
             if (ic != null) auto = ic.getCursorCapsMode(TextUtils.CAP_MODE_SENTENCES) != 0;
@@ -872,7 +1169,7 @@ public final class LocalKeyboardService extends InputMethodService
     @Override
     public void onCursorMove(int steps) {
         InputConnection ic = getCurrentInputConnection();
-        if (ic == null) return;
+        if (ic == null || searching) return;
         if (composing.length() > 0) {
             ic.finishComposingText();
             resetWordState();
@@ -952,5 +1249,95 @@ public final class LocalKeyboardService extends InputMethodService
     @Override
     public void onEmojiDelete() {
         handleDelete();
+    }
+
+    // ================================================================ emoji search
+
+    @Override
+    public void onEmojiSearch() {
+        if (kv == null || searchBar == null) return;
+        if (emojiSearch == null) emojiSearch = new EmojiSearch();
+        searching = true;
+        searchQuery.setLength(0);
+        showEmoji(false);
+        kv.setLayout(qwerty);
+        kv.swipeEnabled = false;
+        kv.setStripVisible(false); // the search bar takes its place
+        shiftState = 0;
+        updateShift();
+        updateSuggestions();
+        searchBar.setVisibility(View.VISIBLE);
+        updateSearch();
+    }
+
+    /** Handles a key while searching; returns false to let it act normally (layout switches). */
+    private boolean searchKey(int code) {
+        switch (code) {
+            case KeyboardLayout.DELETE:
+                if (searchQuery.length() > 0) {
+                    searchQuery.setLength(searchQuery.length() - 1);
+                    updateSearch();
+                } else {
+                    endSearch(true);
+                }
+                return true;
+            case KeyboardLayout.ENTER:
+                endSearch(false);
+                return true;
+            case KeyboardLayout.EMOJI:
+                endSearch(true);
+                return true;
+            case KeyboardLayout.SHIFT:
+                return true;
+            case KeyboardLayout.SYMBOLS:
+            case KeyboardLayout.SYMBOLS2:
+            case KeyboardLayout.ALPHA:
+                return false;
+            case ' ':
+                if (searchQuery.length() > 0 && searchQuery.charAt(searchQuery.length() - 1) != ' ') searchQuery.append(' ');
+                updateSearch();
+                return true;
+            default:
+                if (code > 0) {
+                    searchQuery.append(Character.toLowerCase((char) code));
+                    updateSearch();
+                }
+                return true;
+        }
+    }
+
+    private void updateSearch() {
+        if (searchBar == null || emojiSearch == null) return;
+        String q = searchQuery.toString();
+        ArrayList<String> found = q.trim().isEmpty() ? new ArrayList<String>()
+                : emojiSearch.search(q, 60, e -> emoji == null || emoji.canShow(e), emoji == null ? null : emoji.recents());
+        searchBar.show(q, found);
+    }
+
+    /** Leaves search, back to the emoji panel or to the letters. */
+    private void endSearch(boolean toPanel) {
+        if (!searching) return;
+        searching = false;
+        searchQuery.setLength(0);
+        if (searchBar != null) searchBar.setVisibility(View.GONE);
+        if (kv != null) {
+            kv.swipeEnabled = allowSwipe;
+            kv.setStripVisible(true);
+            kv.setLayout(qwerty);
+        }
+        showEmoji(toPanel);
+        updateShift();
+        updateSuggestions();
+    }
+
+    @Override
+    public void onSearchPick(String e) {
+        if (emoji != null) emoji.addRecent(e);
+        onEmoji(e);
+    }
+
+    @Override
+    public void onSearchClose() {
+        endSearch(false);
     }
 }

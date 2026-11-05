@@ -27,7 +27,7 @@ public final class TapDecoder {
 
     private final Lexicon lex;
     private KeyGeometry geo;
-    public boolean blockOffensive = true;
+    public boolean blockOffensive = false;
 
     private final float[][] sub = new float[64][26];
     private final char[] typed = new char[64];
@@ -124,6 +124,18 @@ public final class TapDecoder {
             } else if (best.cost <= 2.0f + 1.1f * n) {
                 res.correction = best;
             }
+        }
+
+        // a fix this person made by hand before wins over everything else
+        String fix = n >= 2 ? lex.user.correctionFor(lower) : null;
+        if (fix != null && lex.isKnown(fix) && !(blockOffensive && lex.isOffensive(fix))) {
+            int id = dict.find(fix);
+            Candidate c = new Candidate(fix, lex.display(fix, id), 0f, 0f, id >= 0 && dict.offensive[id]);
+            for (int i = res.words.size() - 1; i >= 0; i--) {
+                if (res.words.get(i).key.equals(fix)) res.words.remove(i);
+            }
+            res.words.add(0, c);
+            res.correction = c;
         }
         return res;
     }

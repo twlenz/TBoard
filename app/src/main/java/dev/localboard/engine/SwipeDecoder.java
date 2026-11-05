@@ -28,7 +28,7 @@ public final class SwipeDecoder {
 
     private final Lexicon lex;
     private KeyGeometry geo;
-    public boolean blockOffensive = true;
+    public boolean blockOffensive = false;
 
     private final float[] fx = new float[FINE], fy = new float[FINE];
     private final float[] sx = new float[SHAPE], sy = new float[SHAPE];
