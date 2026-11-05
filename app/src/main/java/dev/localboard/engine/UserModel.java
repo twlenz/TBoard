@@ -68,7 +68,7 @@ public final class UserModel {
             f.put(k, c == null ? 1 : c + 1);
             if (f.size() > MAX_FOLLOWERS) trimFollowers(f);
         }
-        if (words.size() > MAX_WORDS) prune();
+        if (words.size() > MAX_WORDS || bigrams.size() > MAX_WORDS) prune();
         dirty = true;
     }
 
@@ -350,6 +350,30 @@ public final class UserModel {
             Entry e = it.next().getValue();
             if (e.count <= 1 && !e.confirmed) it.remove();
         }
+        if (words.size() > MAX_WORDS * 9 / 10) {
+            // still nearly full: drop the least-used words (never ones the person explicitly kept)
+            ArrayList<Map.Entry<String, Entry>> list = new ArrayList<>(words.entrySet());
+            Collections.sort(list, new Comparator<Map.Entry<String, Entry>>() {
+                @Override
+                public int compare(Map.Entry<String, Entry> x, Map.Entry<String, Entry> y) {
+                    return Integer.compare(x.getValue().count, y.getValue().count);
+                }
+            });
+            int excess = words.size() - MAX_WORDS * 9 / 10;
+            for (Map.Entry<String, Entry> e : list) {
+                if (excess <= 0) break;
+                if (e.getValue().confirmed) continue;
+                words.remove(e.getKey());
+                excess--;
+            }
+        }
+        // next-word data for words that are no longer kept, so the saved file can't grow without limit
+        Iterator<Map.Entry<String, HashMap<String, Integer>>> b = bigrams.entrySet().iterator();
+        while (b.hasNext()) {
+            Map.Entry<String, HashMap<String, Integer>> e = b.next();
+            if (!words.containsKey(e.getKey())) b.remove();
+        }
+        knownVersion++;
     }
 
     private static void trimFollowers(HashMap<String, Integer> f) {

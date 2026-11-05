@@ -15,10 +15,13 @@ mkdir -p "$work/cls"
 javac -nowarn -sourcepath "" -d "$work/cls" \
   $(find "$work/stubs" -name '*.java') \
   $(find "$repo/app/src/main/java" -name '*.java') \
-  "$here/FlowTest.java" "$here/Sim.java"
+  "$here/FlowTest.java" "$here/FuzzTest.java" "$here/Sim.java"
 
 echo "== Flow tests"
 (cd "$work" && timeout 120 java -cp "$work/cls" FlowTest "$dict")
+echo
+echo "== Random-action stress test (crashes, text damage, learning in private fields)"
+(cd "$work" && timeout 300 java -cp "$work/cls" FuzzTest "$dict" 3000 1)
 echo
 echo "== Accuracy simulation (tap noise 0.30 key widths)"
 (cd "$work" && java -cp "$work/cls" Sim "$dict" 0.3 | grep -E '^(TAP|SWIPE|learned|storage)')

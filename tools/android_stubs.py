@@ -63,7 +63,7 @@ S['android.os.SystemClock'] = 'public final class SystemClock { public static lo
 S['android.provider.Settings'] = '''public final class Settings { public static final String ACTION_INPUT_METHOD_SETTINGS = "x";
  public static final class Secure { public static final String DEFAULT_INPUT_METHOD = "default_input_method"; public static String getString(android.content.ContentResolver r, String n){return null;} } }'''
 S['android.text.InputType'] = '''public interface InputType {
- int TYPE_MASK_CLASS=0xf, TYPE_MASK_VARIATION=0xff0, TYPE_MASK_FLAGS=0xfff000, TYPE_CLASS_TEXT=1, TYPE_CLASS_NUMBER=2, TYPE_CLASS_PHONE=3, TYPE_CLASS_DATETIME=4,
+ int TYPE_NULL=0, TYPE_MASK_CLASS=0xf, TYPE_MASK_VARIATION=0xff0, TYPE_MASK_FLAGS=0xfff000, TYPE_CLASS_TEXT=1, TYPE_CLASS_NUMBER=2, TYPE_CLASS_PHONE=3, TYPE_CLASS_DATETIME=4,
  TYPE_TEXT_VARIATION_PASSWORD=0x80, TYPE_TEXT_VARIATION_VISIBLE_PASSWORD=0x90, TYPE_TEXT_VARIATION_WEB_PASSWORD=0xe0, TYPE_NUMBER_VARIATION_PASSWORD=0x10,
  TYPE_TEXT_VARIATION_EMAIL_ADDRESS=0x20, TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS=0xd0, TYPE_TEXT_VARIATION_URI=0x10, TYPE_TEXT_VARIATION_FILTER=0xb0,
  TYPE_TEXT_FLAG_NO_SUGGESTIONS=0x80000, TYPE_TEXT_FLAG_CAP_SENTENCES=0x4000, TYPE_TEXT_FLAG_MULTI_LINE=0x20000; }'''
@@ -99,14 +99,14 @@ S['android.view.View'] = '''public class View { public static final int VISIBLE=
  public boolean performHapticFeedback(int c){return true;} public final int getWidth(){return 0;} public final int getHeight(){return 0;}
  protected final void setMeasuredDimension(int w, int h){} protected void onMeasure(int w, int h){} protected void onSizeChanged(int w, int h, int ow, int oh){}
  protected void onDraw(android.graphics.Canvas c){} public boolean onTouchEvent(MotionEvent e){return false;}
- public void setVisibility(int v){} public ViewGroup.LayoutParams getLayoutParams(){return null;} public void setLayoutParams(ViewGroup.LayoutParams p){}
+ public void setVisibility(int v){} ViewGroup.LayoutParams lp; public ViewGroup.LayoutParams getLayoutParams(){return lp;} public void setLayoutParams(ViewGroup.LayoutParams p){lp=p;}
  public void setBackgroundColor(int c){} public void setOnClickListener(OnClickListener l){} private Object tag; public void setTag(Object o){tag=o;} public Object getTag(){return tag;}
  public void setPadding(int l, int t, int r, int b){} public void setAlpha(float a){} public void setFitsSystemWindows(boolean b){} public void setId(int id){}
  public void setEnabled(boolean e){} public static int generateViewId(){return 1;} public final <T extends View> T findViewById(int id){return null;}
  public void setHorizontalScrollBarEnabled(boolean b){} public void scrollTo(int x, int y){} public android.content.Context getContext(){return null;} }'''
 S['android.view.ViewGroup'] = '''public abstract class ViewGroup extends View { public ViewGroup(android.content.Context c){super(c);}
  public int getChildCount(){return 0;} public View getChildAt(int i){return null;} public void removeAllViews(){}
- public void addView(View v){} public void addView(View v, LayoutParams p){}
+ public void addView(View v){} public void addView(View v, LayoutParams p){v.lp=p;}
  public static class LayoutParams { public static final int MATCH_PARENT=-1, WRAP_CONTENT=-2; public int width, height; public LayoutParams(int w, int h){} }
  public static class MarginLayoutParams extends LayoutParams { public int topMargin, leftMargin, rightMargin, bottomMargin; public MarginLayoutParams(int w, int h){super(w,h);} } }'''
 S['android.view.inputmethod.EditorInfo'] = '''public class EditorInfo { public int inputType, imeOptions;
