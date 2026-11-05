@@ -40,7 +40,7 @@ Each build has a higher version number than the last, so Android refuses to inst
 ## Using it
 
 - **Swipe** across letters to type a word. Swiped words get spaces between them automatically. Backspace deletes a swiped word letter by letter. The suggestion bar shows alternatives; tap one to swap it in.
-- **Autocorrect** happens on space or punctuation. The suggestion bar shows the correction in bold and what you typed in quotes; tap the quoted one to keep your spelling. Backspace right after a correction restores what you typed, and the keyboard then stops correcting that word.
+- **Autocorrect** happens on space or punctuation, never on Enter: Enter sends or starts a new line with the word exactly as typed (and a typo kept that way isn't learned as a word). The suggestion bar shows the correction in bold and what you typed in quotes; tap the quoted one to keep your spelling. Backspace right after a correction restores what you typed, and the keyboard then stops correcting that word.
 - **Fixing a word later teaches it.** Backspacing into a word, selecting it, or tapping inside it lets you edit it. If you change a misspelling into a real word ("hte" → "hate"), autocorrect makes that same change by itself from then on. If you change an autocorrection back to what you typed, it stops making that correction.
 - **Emoji:** tap the smiley key. The magnifier next to ABC searches emoji by name ("heart", "thumbs up"); the letter keys type into the search box. Emoji the phone can't display are hidden.
 - **Long-press** a top-row letter for its number, a vowel or certain consonants (s, c, n, z, l) for accents, the period for more punctuation, and the comma for settings.

@@ -516,7 +516,7 @@ public final class TBoardService extends InputMethodService
         InputConnection ic = getCurrentInputConnection();
         if (ic == null || editor == null) return;
         if (composing.length() == 0) endEditAtSeparator(ic);
-        if (composing.length() > 0) finishWord(true, "");
+        if (composing.length() > 0) finishWordAsTyped(); // enter never autocorrects: what you see is what's sent
         corrResult = null;
         int action = editor.imeOptions & EditorInfo.IME_MASK_ACTION;
         boolean noAction = (editor.imeOptions & EditorInfo.IME_FLAG_NO_ENTER_ACTION) != 0;
@@ -650,6 +650,19 @@ public final class TBoardService extends InputMethodService
 
     /** Commits the composing word (autocorrected if allowed), followed by {@code sep}. */
     private void finishWord(boolean correct, String sep) {
+        finishWord(correct, true, sep);
+    }
+
+    /** Commits the word exactly as shown: no autocorrect, no dictionary capitals ("i" stays "i"). */
+    private void finishWordAsTyped() {
+        finishWord(false, false, "");
+    }
+
+    /**
+     * Commits the composing word followed by {@code sep}. {@code correct} allows autocorrect;
+     * {@code recase} allows dictionary capitalization of a known word ("i" -> "I").
+     */
+    private void finishWord(boolean correct, boolean recase, String sep) {
         InputConnection ic = getCurrentInputConnection();
         if (ic == null || composing.length() == 0) return;
         String typed = composing.toString();
@@ -658,12 +671,14 @@ public final class TBoardService extends InputMethodService
         boolean corrected = false;
         String reopened = resumeOriginal;
         resumeOriginal = resumeEmptiedBefore = null;
+        boolean keptTypo = false; // committed as typed although autocorrect would have changed it
         if (!fromSwipe && lex != null && allowCorrection) {
             TapDecoder.Result r = decodeCurrent(prev);
+            keptTypo = !correct && !pickedExplicit && r.correction != null && !hasInnerCaps(typed);
             if (correct && allowCorrection && !pickedExplicit && r.correction != null && !hasInnerCaps(typed)) {
                 fin = applyCase(r.correction.display, typed);
                 corrected = !fin.equals(typed);
-            } else if (r.typedKnown && !hasInnerCaps(typed)) {
+            } else if (recase && r.typedKnown && !hasInnerCaps(typed)) {
                 // e.g. "i" -> "I", "monday" -> "Monday"
                 String lower = typed.toLowerCase(Locale.ROOT);
                 fin = applyCase(lex.display(lower, lex.dict.find(lower)), typed);
@@ -681,6 +696,11 @@ public final class TBoardService extends InputMethodService
         }
         if (reopened != null && reopened.equalsIgnoreCase(fin)) {
             resetWordState(); // reopened and left as it was: it was already learned the first time
+            return;
+        }
+        if (keptTypo && !recase) {
+            // sent with enter, which doesn't autocorrect: don't learn a likely typo as a word
+            resetWordState();
             return;
         }
         learnWord(prev, fin, typed, corrected, pickedExplicit);
