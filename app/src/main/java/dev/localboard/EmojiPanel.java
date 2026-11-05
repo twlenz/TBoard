@@ -181,6 +181,9 @@ final class EmojiPanel extends LinearLayout {
         Boolean b = drawable.get(e);
         if (b == null) {
             b = glyphPaint.hasGlyph(e);
+            // Android 6-7 report "no glyph" for emoji written with the emoji-style marker U+FE0F
+            // (like the red heart) even though they draw the character itself fine
+            if (!b && e.indexOf('\uFE0F') >= 0) b = glyphPaint.hasGlyph(e.replace("\uFE0F", ""));
             drawable.put(e, b);
         }
         return b;
