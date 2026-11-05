@@ -13,6 +13,8 @@ adb wait-for-device
 adb shell input keyevent 82 || true                       # unlock
 adb shell cmd uimode night no || true
 adb shell settings put secure show_ime_with_hard_keyboard 1
+sleep 20                                                  # let the launcher settle so it doesn't ANR mid-run
+adb shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS || true
 adb install -r -g "$apk"
 adb install -r -g "$tapk"
 # the system can take a moment to notice a newly installed keyboard

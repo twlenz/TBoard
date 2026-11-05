@@ -13,12 +13,15 @@ import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ScrollView;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * Drives the real keyboard on an emulator with injected touches and saves screenshots
@@ -85,11 +88,23 @@ public class ShotRunner extends Instrumentation {
 
         // open the keyboard on the "Try it here" field with a real tap
         runOnMainSync(() -> field = findEdit(activity.getWindow().getDecorView()));
-        sh("logcat -c");
-        int[] loc = new int[2];
-        runOnMainSync(() -> field.getLocationOnScreen(loc));
-        tap(loc[0] + field.getWidth() / 2f, loc[1] + field.getHeight() / 2f);
-        readGeometry();
+        boolean open = false;
+        for (int attempt = 0; attempt < 4 && !open; attempt++) {
+            dismissSystemDialogs();
+            sh("logcat -c");
+            int[] loc = new int[2];
+            runOnMainSync(() -> field.getLocationOnScreen(loc));
+            tap(loc[0] + field.getWidth() / 2f, loc[1] + field.getHeight() / 2f);
+            if (attempt > 0) {
+                runOnMainSync(() -> {
+                    field.requestFocus();
+                    InputMethodManager imm = activity.getSystemService(InputMethodManager.class);
+                    imm.showSoftInput(field, 0);
+                });
+            }
+            open = tryReadGeometry(20);
+        }
+        if (!open) throw new IllegalStateException("keyboard never reported its position (is it the current keyboard?)");
         sleep(800);
 
         step("04_keyboard_light", () -> shot("04_keyboard_light"));
@@ -214,7 +229,11 @@ public class ShotRunner extends Instrumentation {
     }
 
     private void readGeometry() throws Exception {
-        for (int tries = 0; tries < 40; tries++) {
+        if (!tryReadGeometry(40)) throw new IllegalStateException("keyboard did not report its new position");
+    }
+
+    private boolean tryReadGeometry(int tries) throws Exception {
+        for (int t = 0; t < tries; t++) {
             String log = sh("logcat -d -s LBGEOM:I");
             String last = null;
             for (String line : log.split("\n")) {
@@ -230,12 +249,26 @@ public class ShotRunner extends Instrumentation {
                     unit = Float.parseFloat(p[4]);
                     rowH = Float.parseFloat(p[5]);
                     stripH = Float.parseFloat(p[6]);
-                    if (vy > 0) return;
+                    if (vy > 0) return true;
                 }
             }
             sleep(250);
         }
-        throw new IllegalStateException("keyboard never reported its position (is it the current keyboard?)");
+        return false;
+    }
+
+    /** Emulators under load show "X isn't responding" dialogs that swallow taps; press "Wait". */
+    private void dismissSystemDialogs() throws Exception {
+        for (int i = 0; i < 3; i++) {
+            AccessibilityNodeInfo root = ui.getRootInActiveWindow();
+            if (root == null) return;
+            List<AccessibilityNodeInfo> wait = root.findAccessibilityNodeInfosByText("Wait");
+            if (wait == null || wait.isEmpty() || root.findAccessibilityNodeInfosByText("isn't responding").isEmpty()) return;
+            AccessibilityNodeInfo n = wait.get(0);
+            while (n != null && !n.isClickable()) n = n.getParent();
+            if (n != null) n.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+            sleep(800);
+        }
     }
 
     private static final String[] ROWS = {"qwertyuiop", "asdfghjkl", "zxcvbnm"};
@@ -304,6 +337,7 @@ public class ShotRunner extends Instrumentation {
     }
 
     private void shot(String name) throws Exception {
+        dismissSystemDialogs();
         sh("screencap -p " + DIR + "/" + name + ".png");
     }
 
