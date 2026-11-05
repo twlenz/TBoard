@@ -146,4 +146,5 @@ Simulated swipes are cleaner than real ones, so expect lower real-world swipe ac
    - A swipe is decoded before any text changes; if no word matches, the view types the start key as a tap. Before, the half-typed word was committed and the keypress lost.
    - Settings apply live through a SharedPreferences listener (except emoji recents).
    - `UserModel.unlearn` bumps `knownVersion` so `Lexicon` drops words that stop being known.
+   - First emulator run (Android 14, Pixel 6 profile): no crashes; typing, autocorrect bar, swipe, popups, symbols, emoji, themes, heights and next-word predictions all render and work. Fixed from the pictures: key preview was white-on-white (now outlined), number hints collided with letters on short keys (letters now scale with key height), landscape rows are 75% height, and the settings screen keeps its state on rotation.
    - CI: `setup-android@v3` needs `packages: platform-tools` (its default asks for the removed `tools` package). The wrapper jar was checked byte-for-byte against Gradle 8.14.3's own.
