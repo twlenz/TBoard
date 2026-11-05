@@ -79,6 +79,9 @@ final class KeyboardView extends View {
     private final RectF popupRect = new RectF();
     private KeyboardLayout.Key pressedKey;
     private long lastTapTime;
+    private final boolean debuggable;
+    private final int[] screenLoc = new int[2];
+    private String loggedGeometry;
 
     /** Movement (in key widths) that turns a touch into a swipe; more right after a tap, so fast typing isn't misread. */
     private static final float SWIPE_START = 0.6f, SWIPE_START_AFTER_TAP = 1.2f;
@@ -121,6 +124,7 @@ final class KeyboardView extends View {
         trailPaint.setStrokeJoin(Paint.Join.ROUND);
         trailPaint.setStrokeWidth(5f * density);
         theme = KeyboardTheme.resolve(context, "system");
+        debuggable = (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
     }
 
     void setListener(Listener l) {
@@ -188,14 +192,16 @@ final class KeyboardView extends View {
         keysTop = stripH;
         rowH = (h - stripH - 6f * density) / 4f;
         if (listener != null) listener.onGeometryChanged(buildGeometry());
-        if ((getContext().getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
-            // debug builds only: where the keys are on screen, for tools/screenshots
-            post(() -> {
-                int[] loc = new int[2];
-                getLocationOnScreen(loc);
-                Log.i("LBGEOM", loc[0] + " " + loc[1] + " " + getWidth() + " " + getHeight()
-                        + " " + unit + " " + rowH + " " + stripH);
-            });
+    }
+
+    /** Debug builds only: logs where the keys are on screen whenever that changes, for the screenshot driver. */
+    private void logGeometry() {
+        getLocationOnScreen(screenLoc);
+        String g = screenLoc[0] + " " + screenLoc[1] + " " + getWidth() + " " + getHeight()
+                + " " + unit + " " + rowH + " " + stripH;
+        if (!g.equals(loggedGeometry)) {
+            loggedGeometry = g;
+            Log.i("LBGEOM", g);
         }
     }
 
@@ -226,6 +232,7 @@ final class KeyboardView extends View {
         drawStrip(canvas);
         for (KeyboardLayout.Key k : layout.keys) drawKey(canvas, k);
         if (swiping && showTrail && pathN > 1) drawTrail(canvas);
+        if (debuggable) logGeometry();
         if (popupItems != null) drawPopup(canvas);
         else if (keyPreview && pressedKey != null && !swiping && !sliding && pressedKey.kind == KeyboardLayout.NORMAL
                 && pressedKey.code != ' ') drawPreview(canvas, pressedKey);

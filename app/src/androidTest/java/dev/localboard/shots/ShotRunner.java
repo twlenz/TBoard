@@ -105,12 +105,15 @@ public class ShotRunner extends Instrumentation {
             open = tryReadGeometry(20);
         }
         if (!open) throw new IllegalStateException("keyboard never reported its position (is it the current keyboard?)");
-        sleep(800);
+        sleep(1000);
+        readGeometry(); // the last report, after the keyboard window has settled
 
         step("04_keyboard_light", () -> shot("04_keyboard_light"));
         step("05_typing_teh", () -> {
             type("teh");
             shot("05_typing_teh");
+            String got = fieldText();
+            if (!got.equalsIgnoreCase("teh")) throw new IllegalStateException("taps typed \"" + got + "\", not \"teh\"");
         });
         step("06_typing_brpwn", () -> {
             type(" quick brpwn");
@@ -339,6 +342,12 @@ public class ShotRunner extends Instrumentation {
     private void shot(String name) throws Exception {
         dismissSystemDialogs();
         sh("screencap -p " + DIR + "/" + name + ".png");
+    }
+
+    private String fieldText() {
+        String[] out = new String[1];
+        runOnMainSync(() -> out[0] = field.getText().toString());
+        return out[0];
     }
 
     private void clearField() {
