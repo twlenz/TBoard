@@ -246,6 +246,10 @@ public class ShotRunner extends Instrumentation {
 
     private boolean tryReadGeometry(int tries) throws Exception {
         for (int t = 0; t < tries; t++) {
+            // Any settings change makes the keyboard redraw, and it logs its position when drawing.
+            // Without this, a window moved after its last draw would leave a stale position.
+            prefs.edit().putLong("shot_refresh", SystemClock.uptimeMillis()).commit();
+            sleep(150);
             String log = sh("logcat -d -s LBGEOM:I");
             String last = null;
             for (String line : log.split("\n")) {
