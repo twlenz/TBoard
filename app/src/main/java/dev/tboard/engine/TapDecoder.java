@@ -137,6 +137,8 @@ public final class TapDecoder {
             res.words.add(0, c);
             res.correction = c;
         }
+        // a word on the person's "Words to keep" list is never changed
+        if (lex.user.isKept(lower)) res.correction = null;
         return res;
     }
 

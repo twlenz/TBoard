@@ -11,6 +11,7 @@ import android.text.InputType;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -22,11 +23,15 @@ import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import java.util.List;
+
 /** Setup steps and every setting. Opens from the app icon or by long-pressing the comma key. */
 public final class SettingsActivity extends Activity {
     private SharedPreferences prefs;
     private LinearLayout root;
     private TextView status, learned;
+    private LinearLayout keptList;
+    private EditText keepInput;
     private Button enableButton, switchButton;
     private float density;
 
@@ -85,13 +90,40 @@ public final class SettingsActivity extends Activity {
             toggle(t);
         }
 
+        section("Words to keep");
+        root.addView(text("TBoard never autocorrects these and suggests them as you type: names, slang, "
+                + "words it keeps changing. Words you kept by undoing an autocorrection are here too.", 13, false));
+        LinearLayout addRow = new LinearLayout(this);
+        addRow.setOrientation(LinearLayout.HORIZONTAL);
+        addRow.setGravity(Gravity.CENTER_VERTICAL);
+        keepInput = new EditText(this);
+        keepInput.setHint("Add a word");
+        keepInput.setSingleLine(true);
+        keepInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        keepInput.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        keepInput.setOnEditorActionListener((v, actionId, event) -> {
+            addKeptWords();
+            return true;
+        });
+        addRow.addView(keepInput, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        Button add = new Button(this);
+        add.setText("Add");
+        add.setAllCaps(false);
+        add.setOnClickListener(v -> addKeptWords());
+        addRow.addView(add, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+        root.addView(addRow, matchWrap(dp(4)));
+        keptList = new LinearLayout(this);
+        keptList.setOrientation(LinearLayout.VERTICAL);
+        root.addView(keptList, matchWrap(dp(4)));
+
         section("What it has learned");
         learned = text("", 15, false);
         root.addView(learned);
         button("Clear everything learned", v -> new AlertDialog.Builder(this)
                 .setTitle("Clear learned data?")
-                .setMessage("This forgets the words you added, your word pairs and your tap habits. "
-                        + "The built-in dictionary stays.")
+                .setMessage("This forgets the words and word pairs TBoard learned, the fixes you taught it "
+                        + "and your tap habits. Your \"Words to keep\" list and the built-in dictionary stay.")
                 .setPositiveButton("Clear", (d, w) -> {
                     Engine.get(this).clearUserData();
                     refresh();
@@ -140,6 +172,59 @@ public final class SettingsActivity extends Activity {
         if (learned != null) {
             int n = Engine.get(this).learnedWordCount();
             learned.setText(n < 0 ? "Loading…" : n + " words and names remembered from your typing.");
+        }
+        refreshKept();
+    }
+
+    /** Adds the word(s) typed in the box (several can be separated by spaces or commas). */
+    private void addKeptWords() {
+        String typed = keepInput.getText().toString();
+        Engine.get(this).whenReady(() -> {
+            for (String raw : typed.split("[\\s,;]+")) {
+                String w = cleanWord(raw);
+                if (w != null) Engine.get(this).keepWord(w);
+            }
+            keepInput.setText("");
+            refresh();
+        });
+    }
+
+    /** A word without surrounding punctuation, or null if it isn't a single word. */
+    public static String cleanWord(String raw) {
+        String w = raw.replaceAll("^[^\\p{L}\\p{N}]+|[^\\p{L}\\p{N}]+$", "");
+        if (w.isEmpty() || w.length() > 40 || !w.matches("[\\p{L}\\p{N}'\u2019-]+") || !w.matches(".*\\p{L}.*")) return null;
+        return w;
+    }
+
+    private void refreshKept() {
+        if (keptList == null) return;
+        keptList.removeAllViews();
+        List<String> words = Engine.get(this).keptWords();
+        if (words == null) {
+            keptList.addView(text("Loading…", 14, false));
+            return;
+        }
+        if (words.isEmpty()) {
+            TextView none = text("No words yet.", 14, false);
+            none.setAlpha(0.7f);
+            keptList.addView(none);
+            return;
+        }
+        for (String w : words) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.addView(text(w, 16, false), new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            Button remove = new Button(this);
+            remove.setText("Remove");
+            remove.setAllCaps(false);
+            remove.setOnClickListener(v -> {
+                Engine.get(this).unkeepWord(w);
+                refresh();
+            });
+            row.addView(remove, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT));
+            keptList.addView(row);
         }
     }
 
