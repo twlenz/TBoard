@@ -2,6 +2,7 @@ package dev.localboard;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -15,6 +16,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /** Emoji grid with category tabs and a recently-used list (stored on the device). */
 final class EmojiPanel extends LinearLayout {
@@ -25,6 +27,8 @@ final class EmojiPanel extends LinearLayout {
         void onEmojiBack();
 
         void onEmojiDelete();
+
+        void onEmojiSearch();
     }
 
     static final String RECENTS = "recent_emoji";
@@ -40,6 +44,11 @@ final class EmojiPanel extends LinearLayout {
     private KeyboardTheme theme;
     private String[] items = new String[0];
     private int category;
+    private final EmojiSearchBar.IconView searchIcon;
+    // which emoji this phone's fonts can draw (older Android versions lack newer emoji)
+    private final Paint glyphPaint = new Paint();
+    private final HashMap<String, Boolean> drawable = new HashMap<>();
+    private final String[][] shownByCategory = new String[EmojiData.CATEGORIES.length][];
 
     EmojiPanel(Context ctx) {
         super(ctx);
@@ -71,6 +80,11 @@ final class EmojiPanel extends LinearLayout {
             if (listener != null) listener.onEmojiBack();
         });
         bar.addView(abc, new LayoutParams(dp(60), LayoutParams.MATCH_PARENT));
+        searchIcon = new EmojiSearchBar.IconView(ctx, EmojiSearchBar.IconView.SEARCH);
+        searchIcon.setOnClickListener(v -> {
+            if (listener != null) listener.onEmojiSearch();
+        });
+        bar.addView(searchIcon, new LayoutParams(dp(46), LayoutParams.MATCH_PARENT));
 
         HorizontalScrollView scroll = new HorizontalScrollView(ctx);
         scroll.setHorizontalScrollBarEnabled(false);
@@ -100,6 +114,7 @@ final class EmojiPanel extends LinearLayout {
         setBackgroundColor(t.background);
         abc.setTextColor(t.text);
         del.setTextColor(t.text);
+        searchIcon.setColor(t.text);
         updateTabs();
         adapter.notifyDataSetChanged();
     }
@@ -134,7 +149,12 @@ final class EmojiPanel extends LinearLayout {
             ArrayList<String> r = recents();
             items = r.toArray(new String[0]);
         } else {
-            items = EmojiData.CATEGORIES[cat].split(" ");
+            if (shownByCategory[cat] == null) {
+                ArrayList<String> ok = new ArrayList<>();
+                for (String e : EmojiData.CATEGORIES[cat].split(" ")) if (canShow(e)) ok.add(e);
+                shownByCategory[cat] = ok.toArray(new String[0]);
+            }
+            items = shownByCategory[cat];
         }
         adapter.notifyDataSetChanged();
         grid.setSelection(0);
@@ -156,7 +176,17 @@ final class EmojiPanel extends LinearLayout {
         return out;
     }
 
-    private void addRecent(String e) {
+    /** True if the phone's fonts draw this emoji as one picture (not boxes or separate pieces). */
+    boolean canShow(String e) {
+        Boolean b = drawable.get(e);
+        if (b == null) {
+            b = glyphPaint.hasGlyph(e);
+            drawable.put(e, b);
+        }
+        return b;
+    }
+
+    void addRecent(String e) {
         ArrayList<String> r = recents();
         r.remove(e);
         r.add(0, e);

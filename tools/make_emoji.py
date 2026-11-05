@@ -1,36 +1,104 @@
-import emoji, sys
-cats = [
- ("😀", "Smileys", "😀 😃 😄 😁 😆 😅 🤣 😂 🙂 🙃 😉 😊 😇 🥰 😍 🤩 😘 😗 😚 😙 😋 😛 😜 🤪 😝 🤑 🤗 🤭 🤫 🤔 🤐 🤨 😐 😑 😶 😏 😒 🙄 😬 🤥 😌 😔 😪 🤤 😴 😷 🤒 🤕 🤢 🤮 🤧 🥵 🥶 🥴 😵 🤯 🤠 🥳 😎 🤓 🧐 😕 😟 🙁 ☹️ 😮 😯 😲 😳 🥺 😦 😧 😨 😰 😥 😢 😭 😱 😖 😣 😞 😓 😩 😫 🥱 😤 😡 😠 🤬 😈 👿 💀 ☠️ 💩 🤡 👹 👺 👻 👽 👾 🤖 😺 😸 😹 😻 😼 😽 🙀 😿 😾 🙈 🙉 🙊"),
- ("👋", "People", "👋 🤚 🖐️ ✋ 🖖 👌 🤏 ✌️ 🤞 🤟 🤘 🤙 👈 👉 👆 🖕 👇 ☝️ 👍 👎 ✊ 👊 🤛 🤜 👏 🙌 👐 🤲 🤝 🙏 ✍️ 💅 🤳 💪 🦾 🦵 🦶 👂 🦻 👃 🧠 🦷 🦴 👀 👁️ 👅 👄 💋 👶 🧒 👦 👧 🧑 👱 👨 🧔 👩 🧓 👴 👵 🙍 🙎 🙅 🙆 💁 🙋 🧏 🙇 🤦 🤷 👮 🕵️ 💂 👷 🤴 👸 👳 👲 🧕 🤵 👰 🤰 🤱 👼 🎅 🤶 🦸 🦹 🧙 🧚 🧛 🧜 🧝 🧞 🧟 💆 💇 🚶 🧍 🧎 🏃 💃 🕺 👯 🧖 🧗 👫 👬 👭 💏 💑 👪 🗣️ 👤 👥 👣"),
- ("❤️", "Hearts", "❤️ 🧡 💛 💚 💙 💜 🤎 🖤 🤍 💔 ❣️ 💕 💞 💓 💗 💖 💘 💝 💟 💌 💯 💢 💥 💫 💦 💨 🕳️ 💣 💬 🗨️ 🗯️ 💭 💤"),
- ("🐶", "Animals", "🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐽 🐸 🐵 🐔 🐧 🐦 🐤 🐣 🐥 🦆 🦅 🦉 🦇 🐺 🐗 🐴 🦄 🐝 🐛 🦋 🐌 🐞 🐜 🦟 🦗 🕷️ 🦂 🐢 🐍 🦎 🦖 🦕 🐙 🦑 🦐 🦞 🦀 🐡 🐠 🐟 🐬 🐳 🐋 🦈 🐊 🐅 🐆 🦓 🦍 🦧 🐘 🦛 🦏 🐪 🐫 🦒 🦘 🐃 🐂 🐄 🐎 🐖 🐏 🐑 🦙 🐐 🦌 🐕 🐩 🦮 🐈 🐓 🦃 🦚 🦜 🦢 🦩 🕊️ 🐇 🦝 🦨 🦡 🦦 🦥 🐁 🐀 🐿️ 🦔 🐾 🐉 🐲 🌵 🎄 🌲 🌳 🌴 🌱 🌿 ☘️ 🍀 🎍 🎋 🍃 🍂 🍁 🍄 🐚 🌾 💐 🌷 🌹 🥀 🌺 🌸 🌼 🌻 🌞 🌝 🌛 🌜 🌚 🌕 🌙 🌎 🌍 🌏 🪐 💫 ⭐ 🌟 ✨ ⚡ ☄️ 💥 🔥 🌪️ 🌈 ☀️ 🌤️ ⛅ 🌥️ ☁️ 🌦️ 🌧️ ⛈️ 🌩️ 🌨️ ❄️ ☃️ ⛄ 🌬️ 💨 💧 💦 ☔ ☂️ 🌊 🌫️"),
- ("🍔", "Food", "🍏 🍎 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🍈 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🍆 🥑 🥦 🥬 🥒 🌶️ 🌽 🥕 🧄 🧅 🥔 🍠 🥐 🥯 🍞 🥖 🥨 🧀 🥚 🍳 🧈 🥞 🧇 🥓 🥩 🍗 🍖 🦴 🌭 🍔 🍟 🍕 🥪 🥙 🧆 🌮 🌯 🥗 🥘 🥫 🍝 🍜 🍲 🍛 🍣 🍱 🥟 🦪 🍤 🍙 🍚 🍘 🍥 🥠 🥮 🍢 🍡 🍧 🍨 🍦 🥧 🧁 🍰 🎂 🍮 🍭 🍬 🍫 🍿 🍩 🍪 🌰 🥜 🍯 🥛 🍼 ☕ 🍵 🧃 🥤 🍶 🍺 🍻 🥂 🍷 🥃 🍸 🍹 🧉 🍾 🧊 🥄 🍴 🍽️ 🥣 🥡 🥢 🧂"),
- ("⚽", "Activities", "⚽ 🏀 🏈 ⚾ 🥎 🎾 🏐 🏉 🥏 🎱 🪀 🏓 🏸 🏒 🏑 🥍 🏏 🥅 ⛳ 🪁 🏹 🎣 🤿 🥊 🥋 🎽 🛹 🛷 ⛸️ 🥌 🎿 ⛷️ 🏂 🏋️ 🤼 🤸 ⛹️ 🤺 🤾 🏌️ 🏇 🧘 🏄 🏊 🤽 🚣 🧗 🚵 🚴 🏆 🥇 🥈 🥉 🏅 🎖️ 🏵️ 🎗️ 🎫 🎟️ 🎪 🤹 🎭 🩰 🎨 🎬 🎤 🎧 🎼 🎹 🥁 🎷 🎺 🎸 🪕 🎻 🎲 ♟️ 🎯 🎳 🎮 🎰 🧩 🎉 🎊 🎈 🎁 🎀 🎃 🎆 🎇 🧨"),
- ("🚗", "Travel", "🚗 🚕 🚙 🚌 🚎 🏎️ 🚓 🚑 🚒 🚐 🚚 🚛 🚜 🦯 🦽 🦼 🛴 🚲 🛵 🏍️ 🛺 🚨 🚔 🚍 🚘 🚖 🚡 🚠 🚟 🚃 🚋 🚞 🚝 🚄 🚅 🚈 🚂 🚆 🚇 🚊 🚉 ✈️ 🛫 🛬 🛩️ 💺 🛰️ 🚀 🛸 🚁 🛶 ⛵ 🚤 🛥️ 🛳️ ⛴️ 🚢 ⚓ ⛽ 🚧 🚦 🚥 🚏 🗺️ 🗿 🗽 🗼 🏰 🏯 🏟️ 🎡 🎢 🎠 ⛲ ⛱️ 🏖️ 🏝️ 🏜️ 🌋 ⛰️ 🏔️ 🗻 🏕️ ⛺ 🏠 🏡 🏘️ 🏚️ 🏗️ 🏭 🏢 🏬 🏣 🏤 🏥 🏦 🏨 🏪 🏫 🏩 💒 🏛️ ⛪ 🕌 🕍 🛕 🕋 ⛩️ 🌅 🌄 🌠 🎇 🎆 🌇 🌆 🏙️ 🌃 🌌 🌉 🌁"),
- ("💡", "Objects", "⌚ 📱 📲 💻 ⌨️ 🖥️ 🖨️ 🖱️ 🕹️ 💽 💾 💿 📀 📼 📷 📸 📹 🎥 📽️ 🎞️ 📞 ☎️ 📟 📠 📺 📻 🎙️ ⏱️ ⏲️ ⏰ 🕰️ ⌛ ⏳ 📡 🔋 🔌 💡 🔦 🕯️ 🧯 💸 💵 💴 💶 💷 💰 💳 💎 ⚖️ 🧰 🔧 🔨 ⚒️ 🛠️ ⛏️ 🔩 ⚙️ 🧱 ⛓️ 🧲 🔫 💣 🧨 🔪 🗡️ ⚔️ 🛡️ 🚬 ⚰️ ⚱️ 🏺 🔮 📿 🧿 💈 ⚗️ 🔭 🔬 🩹 🩺 💊 💉 🩸 🧬 🦠 🧫 🧪 🌡️ 🧹 🧺 🧻 🚽 🚰 🚿 🛁 🧼 🪒 🧽 🧴 🛎️ 🔑 🗝️ 🚪 🪑 🛋️ 🛏️ 🧸 🖼️ 🛍️ 🛒 🎁 🎈 🎏 🎀 🎊 🎉 ✉️ 📩 📨 📧 💌 📥 📤 📦 🏷️ 📪 📫 📬 📭 📮 📯 📜 📃 📄 📑 🧾 📊 📈 📉 🗒️ 🗓️ 📆 📅 🗑️ 📇 🗃️ 🗳️ 🗄️ 📋 📁 📂 🗂️ 🗞️ 📰 📓 📔 📒 📕 📗 📘 📙 📚 📖 🔖 🧷 🔗 📎 🖇️ 📐 📏 🧮 📌 📍 ✂️ 🖊️ 🖋️ ✒️ 🖌️ 🖍️ 📝 ✏️ 🔍 🔎 🔏 🔐 🔒 🔓 👓 🕶️ 🥽 🥼 🦺 👔 👕 👖 🧣 🧤 🧥 🧦 👗 👘 🥻 🩱 🩲 🩳 👙 👚 👛 👜 👝 🎒 👞 👟 🥾 🥿 👠 👡 🩰 👢 👑 👒 🎩 🎓 🧢 ⛑️ 💄 💍 💼"),
- ("✅", "Symbols", "✅ ☑️ ✔️ ❌ ❎ ➕ ➖ ➗ ✖️ ♾️ ‼️ ⁉️ ❓ ❔ ❕ ❗ 〰️ ⚠️ 🚸 ⛔ 🚫 🔞 📵 🚭 ♻️ 🔰 ⭕ 🛑 🆗 🆒 🆕 🆓 🆙 🆘 🔝 🔜 🔛 🔚 🔙 🔃 🔄 ↩️ ↪️ ⤴️ ⤵️ ⬆️ ↗️ ➡️ ↘️ ⬇️ ↙️ ⬅️ ↖️ ↕️ ↔️ ▶️ ⏸️ ⏯️ ⏹️ ⏺️ ⏭️ ⏮️ ⏩ ⏪ ⏫ ⏬ ◀️ 🔼 🔽 🔀 🔁 🔂 🎵 🎶 💲 ©️ ®️ ™️ #️⃣ *️⃣ 0️⃣ 1️⃣ 2️⃣ 3️⃣ 4️⃣ 5️⃣ 6️⃣ 7️⃣ 8️⃣ 9️⃣ 🔟 🔠 🔡 🔢 🔣 🔤 🅰️ 🆎 🅱️ 🆑 🅾️ 🅿️ ℹ️ Ⓜ️ 🔴 🟠 🟡 🟢 🔵 🟣 🟤 ⚫ ⚪ 🟥 🟧 🟨 🟩 🟦 🟪 🟫 ⬛ ⬜ 🔶 🔷 🔸 🔹 🔺 🔻 💠 🔘 🔳 🔲 ☮️ ✝️ ☪️ 🕉️ ☸️ ✡️ 🔯 🕎 ☯️ ☦️ 🛐 ⛎ ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓ 🆔 ⚛️ ♀️ ♂️ ⚧️ 💮 🉐 ㊙️ ㊗️ 🔅 🔆 📶 📳 📴 🏁 🚩 🎌 🏴 🏳️ 🏳️‍🌈"),
+"""Regenerates app/src/main/java/dev/localboard/EmojiData.java.
+
+Inputs (both from GitHub mirrors of Unicode data):
+  emoji-test.txt   https://raw.githubusercontent.com/unicode-org/unicodetools/main/unicodetools/data/emoji/15.1/emoji-test.txt
+  CLDR annotations https://raw.githubusercontent.com/unicode-org/cldr/release-44/common/annotations/en.xml
+                   https://raw.githubusercontent.com/unicode-org/cldr/release-44/common/annotationsDerived/en.xml
+Usage: python3 make_emoji.py emoji-test.txt en.xml en_derived.xml OUT.java
+
+Keeps fully-qualified emoji up to Emoji 15.1 in CLDR order (the order Unicode recommends for
+keyboards), without skin-tone variants. The keyboard hides any emoji the phone's font can't draw
+(Paint.hasGlyph), so older phones simply show fewer. Search keywords are the CLDR English name
+and keywords for each emoji.
+"""
+import re, sys
+import xml.etree.ElementTree as ET
+
+test_file, ann_file, derived_file, out_file = sys.argv[1:5]
+
+GROUPS = [  # emoji-test group -> (tab icon, short name)
+    ("Smileys & Emotion", "\U0001F600", "Smileys"),
+    ("People & Body", "\U0001F44B", "People"),
+    ("Animals & Nature", "\U0001F436", "Animals"),
+    ("Food & Drink", "\U0001F354", "Food"),
+    ("Travel & Places", "\U0001F697", "Travel"),
+    ("Activities", "⚽", "Activities"),
+    ("Objects", "\U0001F4A1", "Objects"),
+    ("Symbols", "❤️", "Symbols"),
+    ("Flags", "\U0001F3C1", "Flags"),
 ]
-seen_total = 0
-lines = []
-for icon, name, s in cats:
-    items = []
-    for e in s.split():
-        d = emoji.EMOJI_DATA.get(e)
-        if d is None:
-            # try fully-qualified version
-            fq = e + '️'
-            if fq in emoji.EMOJI_DATA: e, d = fq, emoji.EMOJI_DATA[fq]
-        if d is None or d.get('status', 2) != emoji.STATUS['fully_qualified'] or d['E'] > 12:
-            print('drop', name, e, d and d.get('E'), file=sys.stderr); continue
-        if e not in items: items.append(e)
-    seen_total += len(items)
-    lines.append((icon, name, items))
-def jstr(s): return '"' + ''.join(c if ord(c) < 0x80 else '\\u%04x' % ord(c) if ord(c) < 0x10000 else ''.join('\\u%04x' % u for u in [0xD800 + ((ord(c)-0x10000) >> 10), 0xDC00 + ((ord(c)-0x10000) & 0x3FF)]) for c in s) + '"'
-out = ['package dev.localboard;', '', '/** Generated by scripts/make_emoji.py from Unicode emoji data (versions up to Emoji 12, Android 10+). */',
-       'final class EmojiData {', '    static final String[] ICONS = {' + ', '.join(jstr(i) for i,_,_ in lines) + '};',
-       '    static final String[] NAMES = {' + ', '.join(jstr(n) for _,n,_ in lines) + '};',
-       '    static final String[] CATEGORIES = {']
-for _,_,items in lines: out.append('            ' + jstr(' '.join(items)) + ',')
-out += ['    };', '', '    private EmojiData() {', '    }', '}', '']
-open(sys.argv[1], 'w').write('\n'.join(out))
-print(seen_total, 'emoji in', len(lines), 'categories')
+SKIN = set(range(0x1F3FB, 0x1F400))
+MAX_VERSION = 15.1
+
+keywords = {}
+for f in (ann_file, derived_file):
+    for a in ET.parse(f).getroot().iter('annotation'):
+        cp = a.get('cp').replace('️', '')
+        words = keywords.setdefault(cp, [])
+        for part in (a.text or '').split('|'):
+            for w in re.split(r"[\s:,“”\"()]+", part.strip().lower()):
+                if w and w not in words:
+                    words.append(w)
+
+groups = {g: [] for g, _, _ in GROUPS}
+group = None
+line_re = re.compile(r'^([0-9A-F ]+?)\s*;\s*fully-qualified\s*#\s*\S+\s+E(\d+\.\d+)\s+(.*)$')
+for line in open(test_file, encoding='utf-8'):
+    if line.startswith('# group:'):
+        group = line.split(':', 1)[1].strip()
+        continue
+    m = line_re.match(line.strip())
+    if not m or group not in groups:
+        continue
+    cps = [int(c, 16) for c in m.group(1).split()]
+    if any(c in SKIN for c in cps) or float(m.group(2)) > MAX_VERSION:
+        continue
+    e = ''.join(chr(c) for c in cps)
+    name = m.group(3).lower()
+    words = []
+    for w in re.split(r"[\s:,“”\"()]+", name) + keywords.get(e.replace('️', ''), []):
+        if w and w not in words:
+            words.append(w)
+    groups[group].append((e, ' '.join(words)))
+
+
+def jstr(s):
+    out = []
+    for c in s:
+        o = ord(c)
+        if o < 0x80 and c not in '"\\':
+            out.append(c)
+        elif o < 0x10000:
+            out.append('\\u%04x' % o)
+        else:
+            o -= 0x10000
+            out.append('\\u%04x\\u%04x' % (0xD800 + (o >> 10), 0xDC00 + (o & 0x3FF)))
+    return '"' + ''.join(out) + '"'
+
+
+def chunks(s, n=20000):
+    # long string constants are split so no single literal nears the class-file limit
+    return ' + '.join(jstr(s[i:i + n]) for i in range(0, len(s), n)) or '""'
+
+
+lines = ['package dev.localboard;', '',
+         '/**',
+         ' * Generated by tools/make_emoji.py from Unicode emoji-test.txt (Emoji 15.1, CLDR order) and',
+         ' * CLDR English annotations (search keywords). Unicode License v3. Do not edit by hand.',
+         ' */',
+         'final class EmojiData {',
+         '    static final String[] ICONS = {' + ', '.join(jstr(i) for _, i, _ in GROUPS) + '};',
+         '    static final String[] NAMES = {' + ', '.join(jstr(n) for _, _, n in GROUPS) + '};',
+         '    /** Emoji per category, separated by spaces. */',
+         '    static final String[] CATEGORIES = {']
+for g, _, _ in GROUPS:
+    lines.append('            ' + chunks(' '.join(e for e, _ in groups[g])) + ',')
+lines += ['    };',
+          '    /** Search words per category: one entry per emoji (same order), entries separated by "|". */',
+          '    static final String[] KEYWORDS = {']
+for g, _, _ in GROUPS:
+    lines.append('            ' + chunks('|'.join(k for _, k in groups[g])) + ',')
+lines += ['    };', '', '    private EmojiData() {', '    }', '}', '']
+open(out_file, 'w', encoding='utf-8').write('\n'.join(lines))
+total = sum(len(v) for v in groups.values())
+print(total, 'emoji;', ', '.join('%s %d' % (n, len(groups[g])) for g, _, n in GROUPS))

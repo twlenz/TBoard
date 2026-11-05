@@ -19,6 +19,8 @@ public class FlowTest {
     static class Field implements InputConnection {
         StringBuilder t = new StringBuilder(); int cur = 0, cs = -1, ce = -1; int action = -1;
         public CharSequence getTextBeforeCursor(int n, int f) { return t.substring(Math.max(0, cur - n), cur); }
+        public CharSequence getTextAfterCursor(int n, int f) { return t.substring(cur, Math.min(t.length(), cur + n)); }
+        public boolean beginBatchEdit() { return true; } public boolean endBatchEdit() { return true; }
         public CharSequence getSelectedText(int f) { return null; }
         public boolean finishComposingText() { cs = ce = -1; return true; }
         public boolean setComposingText(CharSequence s, int p) { int a = cs >= 0 ? cs : cur, b = cs >= 0 ? ce : cur; t.replace(a, b, s.toString()); cs = a; ce = a + s.length(); cur = ce; if (s.length()==0) cs=ce=-1; return true; }
@@ -46,6 +48,16 @@ public class FlowTest {
         type("teh "); check("reverted word is not corrected again", "Teh teh ");
 
         start(InputType.TYPE_CLASS_TEXT, 0);
+        type("hi  "); check("double-space period is off by default", "Hi  ");
+        check2("offensive words are not blocked by default", !((TapDecoder) get("tap")).blockOffensive);
+
+        ContextWrapper.PREFS.put(Prefs.DOUBLE_SPACE_PERIOD, true);
+        start(InputType.TYPE_CLASS_TEXT, 0);
+        type("ok  "); check("double-space period when turned on", "Ok. ");
+        key(-5); key(-5); type("  "); check("no period again after backspacing it", "Ok  ");
+        start(InputType.TYPE_CLASS_TEXT, 0);
+        type("yes "); key(-5); type("   "); check("backspace then spaces never makes a period", "Yes   ");
+        start(InputType.TYPE_CLASS_TEXT, 0);
         type("i think its fine  "); check("i->I, double space period", "I think its fine. ");
         type("dont go "); check("dont -> don't, capital after period", "I think its fine. Don't go ");
         type(","); check("smart punctuation moves the space", "I think its fine. Don't go, ");
@@ -56,7 +68,8 @@ public class FlowTest {
         swipe("hello"); swipe("world"); check("swiped words get spaces between them", "Hello world  [composing world]");
         type("."); check("punctuation after swipe has no space", "Hello world.");
         swipe("how"); check("swipe after period gets a space", "Hello world. How  [composing How]");
-        key(-5); check("backspace deletes a whole swiped word", "Hello world. ");
+        key(-5); check("backspace after a swipe deletes one letter", "Hello world. Ho  [composing Ho]");
+        key(-5); key(-5);
         swipe("are"); type("you"); check("tapping after a swipe starts a new word", "Hello world. Are you  [composing you]");
 
         start(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD, 0);
@@ -79,7 +92,7 @@ public class FlowTest {
         ContextWrapper.PREFS.put(Prefs.UNDO_AUTOCORRECT, false);
         ContextWrapper.PREFS.put(Prefs.DOUBLE_SPACE_PERIOD, false);
         start(InputType.TYPE_CLASS_TEXT, 0);
-        type("wjat "); key(-5); check("undo-autocorrect setting off: backspace just deletes", "What");
+        type("wjat "); key(-5); check("undo-autocorrect setting off: backspace reopens the word instead", "What  [composing What]");
         type("  "); check("double-space setting off", "What  ");
         ContextWrapper.PREFS.put(Prefs.AUTOCORRECT, false);
         start(InputType.TYPE_CLASS_TEXT, 0);
@@ -95,6 +108,46 @@ public class FlowTest {
         String[] strip = (String[]) getField(get("kv"), "suggestions");
         check2("next-word prediction after 'you' offers 'tomorrow' (strip: " + Arrays.toString(strip) + ")", Arrays.asList(strip).contains("tomorrow"));
 
+        // fixing an autocorrection by hand teaches the keyboard what that typo really meant
+        start(InputType.TYPE_CLASS_TEXT, 0);
+        type("i hte it "); check("setup: hte is autocorrected to the", "I the it ");
+        f.cur = 5; sel();                       // cursor right after "the"
+        key(-5); key(-5); key(-5);              // backspace reopens the word, then deletes it
+        type("hate");
+        f.cur = f.t.length(); sel();            // tap at the end of the text
+        check("word fixed by hand", "I hate it ");
+        UserModel um = ((Lexicon) get("lex")).user;
+        check2("learned hte -> hate (got " + um.correctionFor("hte") + ")", "hate".equals(um.correctionFor("hte")));
+        type("i hte this "); check("the learned fix is applied by itself", "I hate it I hate this ");
+        UserModel back = new UserModel(); back.load(new StringReader(um.serialize()));
+        check2("learned fixes survive saving and loading", "hate".equals(back.correctionFor("hte")));
+
+        // editing inside a word teaches it too
+        ContextWrapper.PREFS.put(Prefs.AUTOCORRECT, false);
+        start(InputType.TYPE_CLASS_TEXT, 0);
+        type("so wnat now ");
+        ContextWrapper.PREFS.remove(Prefs.AUTOCORRECT);
+        s.onStartInputView(editorOf(InputType.TYPE_CLASS_TEXT), true); // settings re-read, text kept
+        f.cur = 5; sel();                       // between "wn" and "at"
+        key(-5); type("h");                     // wnat -> what, from the middle
+        f.cur = f.t.length(); sel();
+        check("edited inside the word", "So what now ");
+        check2("learned wnat -> what (got " + um.correctionFor("wnat") + ")", "what".equals(um.correctionFor("wnat")));
+        type("wnat "); check("in-word fix is applied by itself", "So what now what ");
+
+        // emoji search: letters go to the search box, not the app
+        start(InputType.TYPE_CLASS_TEXT, 0);
+        ArrayList<String> hearts = new EmojiSearch().search("red heart", 5, null);
+        check2("search 'red heart' finds the red heart first (" + hearts + ")", !hearts.isEmpty() && hearts.get(0).equals("\u2764\ufe0f"));
+        ArrayList<String> thumbs = new EmojiSearch().search("thumbs up", 5, null);
+        check2("search 'thumbs up' finds the thumbs up (" + thumbs + ")", !thumbs.isEmpty() && thumbs.get(0).equals("\ud83d\udc4d"));
+        s.onEmojiSearch();
+        type("cat");
+        check("search typing doesn't reach the text field", "");
+        check2("search box holds the query", "cat".equals(get("searchQuery").toString()));
+        s.onSearchPick("\ud83d\udc31"); check("picked emoji is typed", "\ud83d\udc31");
+        key(-6); type("ok"); check("enter closes search, typing goes to the field again", "\ud83d\udc31ok  [composing ok]");
+
         System.out.println("\n" + pass + " passed, " + fail + " failed");
         System.exit(fail == 0 ? 0 : 1); // the keyboard's background I/O thread would otherwise keep the JVM alive
     }
@@ -104,6 +157,7 @@ public class FlowTest {
         EditorInfo e = new EditorInfo(); e.inputType = inputType; e.imeOptions = action;
         s.onStartInputView(e, false);
     }
+    static EditorInfo editorOf(int inputType) { EditorInfo e = new EditorInfo(); e.inputType = inputType; return e; }
     static void type(String str) {
         for (char c : str.toCharArray()) {
             if (c == ' ') s.onKey(' ', Float.NaN, Float.NaN);

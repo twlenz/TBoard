@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 10+: follows the phone's light/dark setting -->
+    <style name="AppTheme" parent="android:Theme.DeviceDefault.DayNight" />
+</resources>

@@ -305,6 +305,10 @@ final class KeyboardView extends View {
         keyPaint.setColor(fill);
         canvas.drawRoundRect(rect, radius, radius, keyPaint);
 
+        if (k.code == KeyboardLayout.EMOJI) {
+            drawSmiley(canvas, rect.centerX(), rect.centerY(), Math.min(rect.width(), rect.height()) * 0.24f, fg);
+            return;
+        }
         String label = k.label;
         float size;
         if (k.code == KeyboardLayout.ENTER) {
@@ -336,6 +340,20 @@ final class KeyboardView extends View {
                 canvas.drawText(hint, rect.right - 6f * density, rect.top + 11f * density, hintPaint);
             }
         }
+    }
+
+    /** A line-drawn smiley in the key text color, so the emoji key matches the other keys. */
+    private void drawSmiley(Canvas canvas, float cx, float cy, float r, int color) {
+        outlinePaint.setColor(color);
+        float stroke = outlinePaint.getStrokeWidth();
+        outlinePaint.setStrokeWidth(Math.max(1.5f, 1.8f * density));
+        canvas.drawCircle(cx, cy, r, outlinePaint);
+        rect.set(cx - r * 0.55f, cy - r * 0.5f, cx + r * 0.55f, cy + r * 0.55f);
+        canvas.drawArc(rect, 25f, 130f, false, outlinePaint);
+        outlinePaint.setStrokeWidth(stroke);
+        keyPaint.setColor(color);
+        canvas.drawCircle(cx - r * 0.35f, cy - r * 0.25f, r * 0.12f, keyPaint);
+        canvas.drawCircle(cx + r * 0.35f, cy - r * 0.25f, r * 0.12f, keyPaint);
     }
 
     private void drawTrail(Canvas canvas) {

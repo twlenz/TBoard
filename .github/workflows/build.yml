@@ -28,7 +28,7 @@ jobs:
       - name: Build
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon assembleRelease
+          ./gradlew --no-daemon lintDebug assembleRelease   # lint: no APIs newer than minSdk without a version check
           cp app/build/outputs/apk/release/app-release.apk LocalBoard.apk
       - uses: actions/upload-artifact@v4
         with:
