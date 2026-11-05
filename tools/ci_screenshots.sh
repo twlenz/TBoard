@@ -15,11 +15,17 @@ adb shell cmd uimode night no || true
 adb shell settings put secure show_ime_with_hard_keyboard 1
 adb install -r -g "$apk"
 adb install -r -g "$tapk"
+# the system can take a moment to notice a newly installed keyboard
+for i in $(seq 1 30); do
+  adb shell ime list -a -s | grep -q "$ime" && break
+  sleep 2
+done
+adb shell ime list -a -s > "$out/ime-list.txt"
 adb shell ime enable "$ime"
 adb shell ime set "$ime"
+adb logcat -d | grep -iE "InputMethod.*(localboard|fail|unable)" > "$out/ime-log.txt" || true
 adb shell rm -rf /sdcard/lbshots
 adb logcat -c
-
 adb shell am instrument -w -r dev.localboard.test/dev.localboard.shots.ShotRunner | tee "$out/instrument.txt"
 
 adb pull /sdcard/lbshots/. "$out/" || true

@@ -14,15 +14,17 @@ An Android keyboard similar to Gboard that does **everything locally**: swipe ty
 
 ## Status
 
-- **Complete but never built with the real Android toolchain.** The earlier session's network blocked Google's Maven and SDK servers, so the Android Gradle Plugin and SDK were never downloaded and no APK was produced.
-- **What was verified without the SDK:** all Java compiles against hand-written stand-ins for the Android APIs (`tools/android_stubs.py`). The real keyboard service was driven through 21 typing scenarios, all passing, and the engine was measured on simulated input (numbers below).
-- **Never run on a phone.** Drawing, touch handling, the emoji panel, the settings screen, themes and on-device speed are all unverified.
+- **Built by GitHub Actions** (`.github/workflows/build.yml`) on every push and pull request; pushes to `main` publish the APK as a GitHub Release named `build-N`. That is how the user installs it. Cloud sessions here cannot reach Google's Maven/SDK hosts, so a local `./gradlew` build fails; use CI.
+- **Run on an emulator** by `.github/workflows/screenshots.yml`: it installs the debug build, makes it the active keyboard, drives it with injected touches (`app/src/androidTest/java/dev/localboard/shots/ShotRunner.java`, platform APIs only, no test libraries) and force-pushes the PNGs to the `screenshots` branch. Fetch that branch to look at them.
+- **Logic tests:** `tools/run_tests.sh` (JDK + Python 3 only) runs 25 typing scenarios against the real service and the accuracy simulation. CI runs it too.
+- **Not yet run on a real phone.** On-device speed, haptics and real-finger swipe accuracy are unverified.
+- To compile against the real Android API without the SDK, Robolectric's `org.robolectric:android-all` jar from Maven Central works as a classpath (`javac --release 17 -cp android-all.jar ...`). It includes hidden APIs, so it is more permissive than `android.jar`.
 
-### Your first job
+### Workflow
 
-1. Run `./gradlew assembleDebug` (or `assembleRelease`) and fix whatever the real compiler, resource merger or AGP complains about. The stubs only cover the signatures the code uses, so a mismatch with the real API is possible even though the stub build passes.
-2. Pushing to `main` runs `.github/workflows/build.yml`, which builds the APK and publishes it as a GitHub Release named `build-N`. This is how the user gets the APK on their phone, since they won't build locally. Make sure that workflow goes green.
-3. Run `tools/run_tests.sh` after changes to the engine or the keyboard service. It needs only a JDK and Python 3, not the Android SDK.
+1. Run `tools/run_tests.sh` after changes to the engine or the keyboard service.
+2. Push; check both workflows; look at the screenshots branch for anything visual.
+3. Debug builds log `LBGEOM <x> <y> <w> <h> <unit> <rowH> <stripH>` from `KeyboardView` so the screenshot driver can find the keys; release builds don't.
 
 ## Project layout
 
@@ -53,12 +55,15 @@ app/src/main/java/dev/localboard/
     KeyGeometry.java, Candidate.java, TopK.java
 tools/
   run_tests.sh                 runs FlowTest + Sim using only a JDK
+  ci_screenshots.sh            emulator side of the screenshots workflow
   FlowTest.java                end-to-end typing scenarios against a fake InputConnection
+app/src/androidTest/.../ShotRunner.java   emulator screenshot driver (set as testInstrumentationRunner)
   Sim.java                     accuracy and speed simulation for taps (with typos) and swipes
   android_stubs.py             writes the Android stand-in classes used by run_tests.sh
   make_dict.py                 regenerates en_words.tsv (pip: wordfreq spylls better_profanity; needs /usr/share/hunspell/en_US.{aff,dic})
   make_emoji.py                regenerates EmojiData.java (pip: emoji)
-.github/workflows/build.yml    builds the release APK and publishes it as a GitHub Release
+.github/workflows/build.yml    tests + builds on every push/PR; publishes a GitHub Release from main
+.github/workflows/screenshots.yml  emulator run; pushes PNGs to the screenshots branch
 ```
 
 ## How the engine works
@@ -120,7 +125,7 @@ Simulated swipes are cleaner than real ones, so expect lower real-world swipe ac
 2. **No bundled next-word model.** Predictions come only from learned pairs, so the bar is empty after a space until the user has typed for a while.
 3. **No live swipe preview.** Gboard shows the word while you're still swiping; this keyboard shows it only after you lift your finger.
 4. **Learned tap offsets affect taps only, not swipes.**
-5. **Settings apply the next time the keyboard opens** (`onStartInputView`), not instantly.
+5. **Swipe vs. tap detection:** a touch becomes a swipe after 0.6 key widths of movement, or 1.2 within 300 ms of the last tap (to protect fast typing). A swipe that decodes to nothing is typed as a tap on the start key. These thresholds are guesses and need real-finger tuning.
 6. **Emoji panel:** no skin tones and no search. Kept to Emoji 12 so all of it renders on Android 10.
 7. **Tests use the JDK, not Gradle:** `tools/` uses plain javac/java with stubs. Porting `FlowTest` scenarios to JUnit (`app/src/test`) with real Android classes would need Robolectric, which isn't set up.
 8. **targetSdk 34 is deliberate:** it avoids Android 15's enforced edge-to-edge layout for the keyboard window. The app isn't meant for the Play Store.
@@ -136,3 +141,9 @@ Simulated swipes are cleaner than real ones, so expect lower real-world swipe ac
    - The keyboard service overwrote its lexicon with null when a text field opened.
    - Shift state wasn't recomputed after an automatically inserted space, so a word swiped or typed after ". " wasn't capitalized.
 5. **APK not built:** the earlier session couldn't reach Google's Maven, Gradle or SDK servers, or the user's GitHub. That's why the project moved to Claude Code with a GitHub repo.
+6. **Claude Code review pass:**
+   - Password and non-text fields now type raw (no composing, no recasing, no double-space period); before, `paris!` in a password field became `Paris!`. Email/URL fields no longer get double-space period or punctuation spacing. Dictionary recasing (`i`→`I`) now follows the autocorrect setting.
+   - A swipe is decoded before any text changes; if no word matches, the view types the start key as a tap. Before, the half-typed word was committed and the keypress lost.
+   - Settings apply live through a SharedPreferences listener (except emoji recents).
+   - `UserModel.unlearn` bumps `knownVersion` so `Lexicon` drops words that stop being known.
+   - CI: `setup-android@v3` needs `packages: platform-tools` (its default asks for the removed `tools` package). The wrapper jar was checked byte-for-byte against Gradle 8.14.3's own.
