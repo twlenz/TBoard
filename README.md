@@ -47,6 +47,7 @@ Each build has a higher version number than the last, so Android refuses to inst
 - **Long-press** a top-row letter for its number, a vowel or certain consonants (s, c, n, z, l) for accents, the period for more punctuation, and the comma for settings.
 - **Long-press space** to switch keyboards; **slide on space** to move the cursor.
 - **Double-tap shift** for caps lock.
+- **Space on the number page goes back to the letters**, except in number-only fields (phone numbers, PINs, dates), which stay on the numbers.
 - **Double-space period** is off by default. When it's on, two spaces right after a backspace never add a period.
 
 All behaviors have their own switches in settings: autocorrect, backspace-undoes-autocorrect, double-space period, auto-capitalize, smart punctuation spacing, swipe typing, swipe trail, spaces between swiped words, suggestion bar, next-word suggestions, learning, offensive-word blocking, space-bar cursor, number hints, key preview, vibration and sound. Changes apply immediately. Off by default: double-space period, offensive-word blocking, vibration and sound.
