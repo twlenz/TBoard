@@ -88,6 +88,11 @@ public class FlowTest {
 
         start(InputType.TYPE_CLASS_TEXT, EditorInfo.IME_ACTION_SEND);
         type("ok"); key(-6); check("enter sends in a send field", "Ok"); check2("editor action SEND", f.action == EditorInfo.IME_ACTION_SEND);
+        start(InputType.TYPE_CLASS_TEXT, EditorInfo.IME_ACTION_SEND);
+        type("i recieve"); key(-6); check("enter sends the last word exactly as typed (no autocorrect)", "I recieve");
+        start(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE, 0);
+        type("we recieve"); key(-6); type("we recieve "); check("enter adds a new line without autocorrect; space still corrects", "We recieve\\nwe receive ");
+        check2("a typo sent with enter is not learned as a word", !((Lexicon) get("lex")).isKnown("recieve"));
 
         ContextWrapper.PREFS.put(Prefs.UNDO_AUTOCORRECT, false);
         ContextWrapper.PREFS.put(Prefs.DOUBLE_SPACE_PERIOD, false);
