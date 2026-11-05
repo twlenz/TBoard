@@ -275,8 +275,11 @@ public final class UserModel {
         return i < 0 ? 0 : offY[i];
     }
 
+    /** Words learned from typing (not counting the ones added to "Words to keep" by hand). */
     public int learnedWordCount() {
-        return words.size();
+        int n = 0;
+        for (Entry e : words.values()) if (!e.kept) n++;
+        return n;
     }
 
     public boolean isDirty() {

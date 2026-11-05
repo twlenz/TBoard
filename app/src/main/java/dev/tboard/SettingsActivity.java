@@ -185,7 +185,7 @@ public final class SettingsActivity extends Activity {
                 if (w != null) Engine.get(this).keepWord(w);
             }
             keepInput.setText("");
-            refreshKept();
+            refresh();
         });
     }
 
@@ -220,7 +220,7 @@ public final class SettingsActivity extends Activity {
             remove.setAllCaps(false);
             remove.setOnClickListener(v -> {
                 Engine.get(this).unkeepWord(w);
-                refreshKept();
+                refresh();
             });
             row.addView(remove, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT));
