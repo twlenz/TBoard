@@ -140,6 +140,16 @@ public class FlowTest {
         check2("learned wnat -> what (got " + um.correctionFor("wnat") + ")", "what".equals(um.correctionFor("wnat")));
         type("wnat "); check("in-word fix is applied by itself", "So what now what ");
 
+        // space on the number page goes back to the letters, except in number-only fields
+        start(InputType.TYPE_CLASS_TEXT, 0);
+        type("call me at "); key(-2); type("5551234 ");
+        check2("space after numbers returns to the letters", onLetters());
+        type("ok"); check("letters typed after that", "Call me at 5551234 ok  [composing ok]");
+        start(InputType.TYPE_CLASS_PHONE, 0);
+        type("555 1234");
+        check2("a phone field stays on the number page", !onLetters());
+        check("phone number typed with a space", "555 1234");
+
         // "Words to keep": never autocorrected, listed in settings, survive clearing learned data
         start(InputType.TYPE_CLASS_TEXT, 0);
         type("so tge "); check("setup: tge is autocorrected", "So the ");
@@ -201,6 +211,14 @@ public class FlowTest {
         f = new Field(); InputMethodService.testIC = f;
         EditorInfo e = new EditorInfo(); e.inputType = inputType; e.imeOptions = action;
         s.onStartInputView(e, false);
+    }
+    /** Whether the keyboard is showing the letter keys (KeyboardView is package-private, so via reflection). */
+    static boolean onLetters() throws Exception {
+        Object kv = get("kv");
+        java.lang.reflect.Method m = kv.getClass().getDeclaredMethod("getLayout"); m.setAccessible(true);
+        Object layout = m.invoke(kv);
+        java.lang.reflect.Field fl = layout.getClass().getDeclaredField("letters"); fl.setAccessible(true);
+        return fl.getBoolean(layout);
     }
     static EditorInfo editorOf(int inputType) { EditorInfo e = new EditorInfo(); e.inputType = inputType; return e; }
     static void type(String str) {

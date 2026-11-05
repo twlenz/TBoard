@@ -59,6 +59,8 @@ public final class TBoardService extends InputMethodService
     private boolean allowSuggestions, allowCorrection, allowLearning, allowSwipe, allowAutoCap, allowPredictions;
     /** Passwords and non-text fields: characters go straight in, with no composing word and no smart edits. */
     private boolean rawInput;
+    /** Number, phone and date fields open on the number page and stay there. */
+    private boolean numericField;
     /** Double-space period and punctuation spacing; off in passwords, emails and URLs. */
     private boolean allowSmartPunct;
     private boolean prefUndo, prefDoubleSpace, prefPunctSwap, prefAutoSpace, prefVibrate, prefSound;
@@ -199,9 +201,9 @@ public final class TBoardService extends InputMethodService
 
         if (kv != null) {
             int cls = info.inputType & InputType.TYPE_MASK_CLASS;
-            boolean numeric = cls == InputType.TYPE_CLASS_NUMBER || cls == InputType.TYPE_CLASS_PHONE
+            numericField = cls == InputType.TYPE_CLASS_NUMBER || cls == InputType.TYPE_CLASS_PHONE
                     || cls == InputType.TYPE_CLASS_DATETIME;
-            kv.setLayout(numeric ? symbols : qwerty);
+            kv.setLayout(numericField ? symbols : qwerty);
             kv.setEnterLabel(enterLabel(info));
             endSearch(false);
             showEmoji(false);
@@ -359,6 +361,11 @@ public final class TBoardService extends InputMethodService
                 return;
             case ' ':
                 handleSpace();
+                // after typing numbers or symbols, space goes back to the letters (not in number-only fields)
+                if (!numericField && kv != null && !kv.getLayout().letters) {
+                    kv.setLayout(qwerty);
+                    updateShift();
+                }
                 return;
             default:
                 handleChar((char) code, x, y);
