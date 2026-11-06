@@ -430,7 +430,17 @@ public final class TBoardService extends InputMethodService
     private void appendToWord(char c, float x, float y) {
         InputConnection ic = getCurrentInputConnection();
         if (ic == null) return;
-        if (fromSwipe) finishWord(false, ""); // tapping after a swipe starts a new word
+        if (fromSwipe && (c == '\'' || c == '-')) {
+            // an apostrophe or hyphen right after a swiped word joins it ("Jake's", "well-known"):
+            // the word carries on as a typed one
+            fromSwipe = false;
+            pickedExplicit = false;
+            swipeAlts.clear();
+            points.clear();
+            for (int i = 0; i < composing.length(); i++) points.add(null);
+            pendingSpace = false;
+        }
+        if (fromSwipe) finishWord(false, ""); // tapping a letter after a swipe starts a new word
         if (composing.length() == 0) {
             boolean reopened = !(pendingSpace && prefAutoSpace) && reopenForTyping(ic);
             if (!reopened) {

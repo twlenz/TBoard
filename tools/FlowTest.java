@@ -71,6 +71,8 @@ public class FlowTest {
         key(-5); check("backspace after a swipe deletes one letter", "Hello world. Ho  [composing Ho]");
         key(-5); key(-5);
         swipe("are"); type("you"); check("tapping after a swipe starts a new word", "Hello world. Are you  [composing you]");
+        start(InputType.TYPE_CLASS_TEXT, 0);
+        swipe("hello"); type("'s"); check("an apostrophe after a swiped word joins it", "Hello's  [composing Hello's]");
 
         start(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD, 0);
         type("teh "); check("no autocorrect in password fields", "teh ");
