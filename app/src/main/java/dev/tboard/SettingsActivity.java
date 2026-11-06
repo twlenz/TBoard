@@ -99,7 +99,8 @@ public final class SettingsActivity extends Activity {
         keepInput = new EditText(this);
         keepInput.setHint("Add a word");
         keepInput.setSingleLine(true);
-        keepInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        // a "filter" field: TBoard shows suggestions there but never autocorrects or learns from it
+        keepInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_FILTER);
         keepInput.setImeOptions(EditorInfo.IME_ACTION_DONE);
         keepInput.setOnEditorActionListener((v, actionId, event) -> {
             addKeptWords();

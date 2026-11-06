@@ -3,6 +3,8 @@ package dev.tboard.shots;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.app.UiAutomation;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -158,6 +160,18 @@ public class ShotRunner extends Instrumentation {
             touch(MotionEvent.ACTION_CANCEL, d, p[0], p[1]);
             sleep(300);
         });
+        step("09b_longpress_period", () -> {
+            sleep(400);
+            float[] p = at(8f, 3); // the period key
+            long d = SystemClock.uptimeMillis();
+            touch(MotionEvent.ACTION_DOWN, d, p[0], p[1]);
+            sleep(800);
+            shot("09b_longpress_period");
+            touch(MotionEvent.ACTION_UP, d, p[0], p[1]); // release without moving: the cell above the key
+            sleep(400);
+            String now = fieldText();
+            if (!now.endsWith("'")) throw new IllegalStateException("long-press period typed: ..." + now.substring(Math.max(0, now.length() - 8)));
+        });
         step("10_key_preview", () -> {
             float[] p = key('g');
             long d = SystemClock.uptimeMillis();
@@ -167,6 +181,15 @@ public class ShotRunner extends Instrumentation {
             touch(MotionEvent.ACTION_UP, d, p[0], p[1]);
             sleep(200);
             tapSpecial(9.25f, 2); // delete the g
+        });
+        step("10b_paste", () -> {
+            runOnMainSync(() -> getTargetContext().getSystemService(ClipboardManager.class)
+                    .setPrimaryClip(ClipData.newPlainText("shot", " pasted!")));
+            sleep(1500); // Android 13+ briefly shows its own "copied" preview
+            tap(vx + vw - 24 * density(), vy + stripH / 2f); // the paste button, right end of the suggestion bar
+            sleep(600);
+            shot("10b_paste");
+            if (!fieldText().endsWith(" pasted!")) throw new IllegalStateException("paste button didn't paste");
         });
         step("11_symbols", () -> {
             tapSpecial(0.75f, 3);

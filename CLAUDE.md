@@ -16,7 +16,7 @@ An Android keyboard similar to Gboard that does **everything locally**: swipe ty
 
 - **Built by GitHub Actions** (`.github/workflows/build.yml`) on every push and pull request; pushes to `main` publish the APK as a GitHub Release named `build-N`. That is how the user installs it. Cloud sessions here cannot reach Google's Maven/SDK hosts, so a local `./gradlew` build fails; use CI.
 - **Run on an emulator** by `.github/workflows/screenshots.yml`: it installs the debug build, makes it the active keyboard, drives it with injected touches (`app/src/androidTest/java/dev/tboard/shots/ShotRunner.java`, platform APIs only, no test libraries) and force-pushes the PNGs to the `screenshots` branch. Fetch that branch to look at them.
-- **Logic tests:** `tools/run_tests.sh` (JDK + Python 3 only) runs 65 typing scenarios against the real service, a random-action stress test (`FuzzTest`: crashes, text changed far from the cursor, learning in password/incognito fields; checked by planting bugs, which it catches) and the accuracy simulation. CI runs it too.
+- **Logic tests:** `tools/run_tests.sh` (JDK + Python 3 only) runs 72 typing scenarios against the real service, a random-action stress test (`FuzzTest`: crashes, text changed far from the cursor, learning in password/incognito fields; checked by planting bugs, which it catches) and the accuracy simulation. CI runs it too.
 - **Not yet run on a real phone.** On-device speed, haptics and real-finger swipe accuracy are unverified.
 - To compile against the real Android API without the SDK, Robolectric's `org.robolectric:android-all` jar from Maven Central works as a classpath (`javac --release 17 -cp android-all.jar ...`). It includes hidden APIs, so it is more permissive than `android.jar`.
 
@@ -106,6 +106,9 @@ app/src/androidTest/.../ShotRunner.java   emulator screenshot driver (set as tes
 **Composing model (`TBoardService`):**
 - **Typing:** the current word is composing text. Space, punctuation, enter, or a suggestion tap commits it, autocorrecting if allowed, except enter (user request): `finishWordAsTyped` commits it with no autocorrect and no dictionary recasing, and doesn't learn it when autocorrect would have changed it (otherwise typos sent twice with enter would become "known" words).
 - **Undo:** backspace right after an autocorrect restores the typed word only if the text before the cursor is exactly "correction + separator". It then unlearns the correction and confirms the original.
+- **Paste button:** right end of the suggestion strip (`KeyboardView.PASTE`, 48dp). `onPaste` reads the clipboard only on tap (allowed for the current IME), commits the composing word as typed, then commits the clip's text; nothing pasted is learned.
+- **Fields that ask for no suggestions:** ignored by default (setting `SUGGEST_EVERYWHERE`, like Gboard; Google Keep sets the flag on its note fields), except for `TYPE_TEXT_VARIATION_WEB_EDIT_TEXT` browser fields. The settings screen's own "Add a word" box is a FILTER field so it's never corrected.
+- **Long-press grids:** `Key.moreCols` lays a popup out as a grid whose bottom-right cell sits over the key; selection is 2-D. The period uses a 3×3 grid with ' (default), ! and ? closest.
 - **Number page:** space on the symbols/number layouts switches back to QWERTY, except in number/phone/date fields (`numericField`), which open on the number page and stay there.
 - **Swiping:** a swiped word stays composing so a suggestion tap can swap it, and a pending space goes in before the next word. Backspace edits it letter by letter.
 - **Stale cursor reports:** `onUpdateSelection` checks the actual text before dropping the composing word, because the app's cursor reports can lag behind fast typing.

@@ -19,6 +19,8 @@ final class KeyboardLayout {
         final float x, w;
         final int row;
         final int kind;
+        /** Long-press items as a grid this many columns wide, anchored by its bottom-right cell; 0 = one row. */
+        int moreCols;
 
         Key(int code, String label, String[] more, float x, float w, int row, int kind) {
             this.code = code;
@@ -59,7 +61,14 @@ final class KeyboardLayout {
         keys.add(new Key(code, label, more, x, w, r, kind));
     }
 
-    private static final String[] PERIOD_MORE = {"?", "!", "'", "\"", ":", ";", "-", "/", "@", "&"};
+    /**
+     * Long-press period: a 3x3 grid, rows top to bottom. The bottom-right cell sits right above the
+     * period key, so it's what a plain long-press types ('); ! (left) and ? (up) are one step away.
+     */
+    private static final String[] PERIOD_MORE = {
+            "@", ";", ":",
+            "/", "\"", "?",
+            "-", "!", "'"};
     private static final String[] COMMA_MORE = {SETTINGS_ITEM, ";", ":"};
 
     private void bottomRow(boolean alphaSwitch) {
@@ -68,6 +77,7 @@ final class KeyboardLayout {
         add(EMOJI, "☺", 2.5f, 1f, 3, SPECIAL, null);
         add(' ', "", 3.5f, 4f, 3, NORMAL, null);
         add('.', ".", 7.5f, 1f, 3, SPECIAL, PERIOD_MORE);
+        keys.get(keys.size() - 1).moreCols = 3;
         add(ENTER, "↵", 8.5f, 1.5f, 3, ACCENT, null);
     }
 
@@ -81,7 +91,7 @@ final class KeyboardLayout {
                 {"á", "à", "â", "ä", "ã", "å", "æ"}, {"ß", "ś", "š"}, null, null, null, null, null, null, {"ł"}});
         k.add(SHIFT, "⇧", 0f, 1.5f, 2, SPECIAL, null);
         k.row(2, 1.5f, "zxcvbnm", new String[][]{
-                {"ž", "ź", "ż"}, null, {"ç", "ć", "č"}, null, null, {"ñ", "ń"}, null});
+                {"ž", "ź", "ż"}, null, {"ç", "ć", "č"}, null, null, {"ñ", "ń"}, {"μ"}});
         k.add(DELETE, "⌫", 8.5f, 1.5f, 2, SPECIAL, null);
         k.bottomRow(false);
         return k;

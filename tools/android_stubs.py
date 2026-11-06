@@ -6,7 +6,7 @@ import os, sys, textwrap
 root = sys.argv[1]
 S = {}
 S['android.content.Context'] = '''public abstract class Context {
- public static final int MODE_PRIVATE = 0; public static final String AUDIO_SERVICE="audio"; public static final String INPUT_METHOD_SERVICE="input_method";
+ public static final int MODE_PRIVATE = 0; public static final String AUDIO_SERVICE="audio"; public static final String CLIPBOARD_SERVICE="clipboard"; public static final String INPUT_METHOD_SERVICE="input_method";
  public abstract android.content.SharedPreferences getSharedPreferences(String n, int m);
  public abstract android.content.res.Resources getResources();
  public final int getColor(int id){return 0;}
@@ -32,12 +32,18 @@ S['android.content.ContextWrapper'] = '''public class ContextWrapper extends Con
  public android.content.res.AssetManager getAssets(){return null;}
  public java.io.File getFilesDir(){return null;}
  public Context getApplicationContext(){return this;}
- public Object getSystemService(String n){return null;}
+ public Object getSystemService(String n){return "clipboard".equals(n) ? new android.content.ClipboardManager() : null;}
  public void startActivity(android.content.Intent i){}
  public String getPackageName(){return null;}
  public android.content.ContentResolver getContentResolver(){return null;}
 }'''
 S['android.content.ContentResolver'] = 'public abstract class ContentResolver {}'
+S['android.content.ClipData'] = '''public class ClipData { private final CharSequence t; private ClipData(CharSequence t){this.t=t;}
+ public static ClipData newPlainText(CharSequence label, CharSequence text){return new ClipData(text);}
+ public int getItemCount(){return 1;} public Item getItemAt(int i){return new Item(t);}
+ public static class Item { private final CharSequence t; public Item(CharSequence t){this.t=t;} public CharSequence coerceToText(Context c){return t;} } }'''
+S['android.content.ClipboardManager'] = '''public class ClipboardManager { public static CharSequence testClip;
+ public boolean hasPrimaryClip(){return testClip!=null;} public ClipData getPrimaryClip(){return testClip==null?null:ClipData.newPlainText("", testClip);} }'''
 S['android.content.DialogInterface'] = '''public interface DialogInterface { interface OnClickListener { void onClick(DialogInterface d, int which); } }'''
 S['android.content.SharedPreferences'] = '''public interface SharedPreferences {
  boolean getBoolean(String k, boolean d); String getString(String k, String d); int getInt(String k, int d); Editor edit();
@@ -65,7 +71,7 @@ S['android.provider.Settings'] = '''public final class Settings { public static 
 S['android.text.InputType'] = '''public interface InputType {
  int TYPE_NULL=0, TYPE_MASK_CLASS=0xf, TYPE_MASK_VARIATION=0xff0, TYPE_MASK_FLAGS=0xfff000, TYPE_CLASS_TEXT=1, TYPE_CLASS_NUMBER=2, TYPE_CLASS_PHONE=3, TYPE_CLASS_DATETIME=4,
  TYPE_TEXT_VARIATION_PASSWORD=0x80, TYPE_TEXT_VARIATION_VISIBLE_PASSWORD=0x90, TYPE_TEXT_VARIATION_WEB_PASSWORD=0xe0, TYPE_NUMBER_VARIATION_PASSWORD=0x10,
- TYPE_TEXT_VARIATION_EMAIL_ADDRESS=0x20, TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS=0xd0, TYPE_TEXT_VARIATION_URI=0x10, TYPE_TEXT_VARIATION_FILTER=0xb0,
+ TYPE_TEXT_VARIATION_EMAIL_ADDRESS=0x20, TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS=0xd0, TYPE_TEXT_VARIATION_URI=0x10, TYPE_TEXT_VARIATION_FILTER=0xb0, TYPE_TEXT_VARIATION_WEB_EDIT_TEXT=0xa0,
  TYPE_TEXT_FLAG_NO_SUGGESTIONS=0x80000, TYPE_TEXT_FLAG_CAP_SENTENCES=0x4000, TYPE_TEXT_FLAG_MULTI_LINE=0x20000; }'''
 S['android.text.TextUtils'] = 'public class TextUtils { public static final int CAP_MODE_SENTENCES = 0x4000; }'
 S['android.graphics.Canvas'] = '''public class Canvas { public void drawColor(int c){} public void drawRoundRect(RectF r, float rx, float ry, Paint p){}
