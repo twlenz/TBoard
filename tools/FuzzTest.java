@@ -158,7 +158,8 @@ public class FuzzTest {
         if (r < 92) { s.onKey(-7, Float.NaN, Float.NaN); if (rnd.nextBoolean()) s.onEmoji("😀"); s.onEmojiBack(); return "emoji"; }
         if (r < 94) { s.onEmojiSearch(); for (int i = rnd.nextInt(5); i > 0; i--) tap((char) ('a' + rnd.nextInt(26))); if (rnd.nextBoolean()) s.onSearchPick("❤️"); s.onKey(rnd.nextBoolean() ? -6 : -5, Float.NaN, Float.NaN); s.onSearchClose(); return "emoji search"; }
         if (r < 96) { s.onText(rnd.nextBoolean() ? "é" : ".com"); return "long-press text"; }
-        if (r < 98) { s.onKey(rnd.nextBoolean() ? -2 : -4, Float.NaN, Float.NaN); return "layout"; }
+        if (r < 97) { s.onKey(rnd.nextBoolean() ? -2 : -4, Float.NaN, Float.NaN); return "layout"; }
+        if (r < 98) { android.content.ClipboardManager.testClip = rnd.nextBoolean() ? "pasted words" : null; s.onPaste(); return "paste"; }
         String[] keys = {Prefs.AUTOCORRECT, Prefs.DOUBLE_SPACE_PERIOD, Prefs.SUGGESTIONS, Prefs.SWIPE};
         ContextWrapper.PREFS.put(keys[rnd.nextInt(keys.length)], rnd.nextBoolean());
         return "setting";

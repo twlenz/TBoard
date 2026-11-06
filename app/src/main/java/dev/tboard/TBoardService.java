@@ -236,7 +236,10 @@ public final class TBoardService extends InputMethodService
                 || var == InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS
                 || var == InputType.TYPE_TEXT_VARIATION_URI
                 || var == InputType.TYPE_TEXT_VARIATION_FILTER);
-        boolean noSuggest = (flags & InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS) != 0;
+        // Apps like Google Keep set "no suggestions" on ordinary note fields; Gboard ignores it, and so do
+        // we unless the setting is off. Browser fields keep it: there it usually means a code or search box.
+        boolean noSuggest = (flags & InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS) != 0
+                && (var == InputType.TYPE_TEXT_VARIATION_WEB_EDIT_TEXT || !Prefs.on(prefs, Prefs.SUGGEST_EVERYWHERE));
         boolean incognito = (info.imeOptions & EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING) != 0;
 
         allowSuggestions = text && !password && !noSuggest && Prefs.on(prefs, Prefs.SUGGESTIONS);
@@ -427,7 +430,17 @@ public final class TBoardService extends InputMethodService
     private void appendToWord(char c, float x, float y) {
         InputConnection ic = getCurrentInputConnection();
         if (ic == null) return;
-        if (fromSwipe) finishWord(false, ""); // tapping after a swipe starts a new word
+        if (fromSwipe && (c == '\'' || c == '-')) {
+            // an apostrophe or hyphen right after a swiped word joins it ("Jake's", "well-known"):
+            // the word carries on as a typed one
+            fromSwipe = false;
+            pickedExplicit = false;
+            swipeAlts.clear();
+            points.clear();
+            for (int i = 0; i < composing.length(); i++) points.add(null);
+            pendingSpace = false;
+        }
+        if (fromSwipe) finishWord(false, ""); // tapping a letter after a swipe starts a new word
         if (composing.length() == 0) {
             boolean reopened = !(pendingSpace && prefAutoSpace) && reopenForTyping(ic);
             if (!reopened) {
@@ -1206,6 +1219,29 @@ public final class TBoardService extends InputMethodService
         afterNonSpace();
         int code = steps < 0 ? KeyEvent.KEYCODE_DPAD_LEFT : KeyEvent.KEYCODE_DPAD_RIGHT;
         for (int i = 0; i < Math.abs(steps); i++) sendDownUpKeyEvents(code);
+        updateSuggestions();
+    }
+
+    /** The paste button: types what's on the clipboard. Reads the clipboard only when tapped. */
+    @Override
+    public void onPaste() {
+        InputConnection ic = getCurrentInputConnection();
+        if (ic == null || searching) return;
+        android.content.ClipboardManager cm =
+                (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        if (cm == null || !cm.hasPrimaryClip()) return;
+        android.content.ClipData clip = cm.getPrimaryClip();
+        if (clip == null || clip.getItemCount() == 0) return;
+        CharSequence text = clip.getItemAt(0).coerceToText(this);
+        if (text == null || text.length() == 0) return;
+        if (composing.length() > 0) finishWordAsTyped();
+        insertPendingSpace(ic); // e.g. right after a swiped word
+        editOriginal = editCurrent = null; // pasting isn't correcting a word
+        resumeOriginal = null;
+        corrResult = null;
+        ic.commitText(text, 1);
+        afterNonSpace();
+        updateShift();
         updateSuggestions();
     }
 

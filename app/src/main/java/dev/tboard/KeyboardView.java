@@ -42,6 +42,9 @@ final class KeyboardView extends View {
         void onGeometryChanged(KeyGeometry geometry);
 
         void onKeyDownFeedback();
+
+        /** The paste button at the right end of the suggestion bar. */
+        void onPaste();
     }
 
     private final float density;
@@ -77,7 +80,7 @@ final class KeyboardView extends View {
     private float[] pathX = new float[256], pathY = new float[256];
     private int pathN;
     private String[] popupItems;
-    private int popupSel = -1;
+    private int popupSel = -1, popupCols = 1, popupRows = 1;
     private final RectF popupRect = new RectF();
     private KeyboardLayout.Key pressedKey;
     private long lastTapTime;
@@ -254,8 +257,14 @@ final class KeyboardView extends View {
                 && pressedKey.code != ' ') drawPreview(canvas, pressedKey);
     }
 
+    /** Width of the paste button at the right end of the suggestion bar; the 3 suggestions share the rest. */
+    private float pasteWidth() {
+        return 48f * density;
+    }
+
     private void drawStrip(Canvas canvas) {
-        float w = getWidth() / 3f;
+        float pw = pasteWidth();
+        float w = (getWidth() - pw) / 3f;
         stripPaint.setTextSize(17f * density);
         for (int i = 0; i < 3; i++) {
             String s = suggestions[i];
@@ -276,7 +285,27 @@ final class KeyboardView extends View {
             if (suggestions[i - 1] == null && suggestions[i] == null) continue;
             canvas.drawRect(i * w - density / 2f, stripH * 0.3f, i * w + density / 2f, stripH * 0.7f, keyPaint);
         }
+        // paste button: a clipboard outline in the dim text color
+        float px = getWidth() - pw;
+        if (inStrip && stripDownIndex == PASTE) {
+            keyPaint.setColor(theme.keyPressed);
+            rect.set(px + gap, gap, getWidth() - gap, stripH - gap);
+            canvas.drawRoundRect(rect, radius, radius, keyPaint);
+        }
+        keyPaint.setColor(theme.divider);
+        canvas.drawRect(px - density / 2f, stripH * 0.3f, px + density / 2f, stripH * 0.7f, keyPaint);
+        float cx = px + pw / 2f, cy = stripH / 2f, bw = 7f * density, bh = 9f * density;
+        outlinePaint.setColor(theme.textDim);
+        float stroke = outlinePaint.getStrokeWidth();
+        outlinePaint.setStrokeWidth(Math.max(1.5f, 1.8f * density));
+        rect.set(cx - bw, cy - bh + density, cx + bw, cy + bh);
+        canvas.drawRoundRect(rect, 2f * density, 2f * density, outlinePaint);
+        rect.set(cx - bw * 0.5f, cy - bh - 1.5f * density, cx + bw * 0.5f, cy - bh + 3f * density);
+        canvas.drawRoundRect(rect, density, density, outlinePaint);
+        outlinePaint.setStrokeWidth(stroke);
     }
+
+    static final int PASTE = 3;
 
     private static String ellipsize(String s, float max, Paint p) {
         if (p.measureText(s) <= max) return s;
@@ -407,22 +436,22 @@ final class KeyboardView extends View {
         canvas.drawRoundRect(popupRect, radius, radius, keyPaint);
         outlinePaint.setColor(theme.dark ? 0x40FFFFFF : 0x40000000);
         canvas.drawRoundRect(popupRect, radius, radius, outlinePaint);
-        float cw = popupRect.width() / popupItems.length;
+        float cw = popupRect.width() / popupCols, ch = popupRect.height() / popupRows;
         textPaint.setTypeface(Typeface.DEFAULT);
-        textPaint.setTextSize(22f * density);
+        textPaint.setTextSize(Math.min(22f * density, ch * 0.5f));
         Paint.FontMetrics fm = textPaint.getFontMetrics();
         for (int i = 0; i < popupItems.length; i++) {
-            float l = popupRect.left + i * cw;
+            float l = popupRect.left + (i % popupCols) * cw, t = popupRect.top + (i / popupCols) * ch;
             if (i == popupSel) {
                 keyPaint.setColor(theme.popupSelected);
-                rect.set(l + gap, popupRect.top + gap, l + cw - gap, popupRect.bottom - gap);
+                rect.set(l + gap, t + gap, l + cw - gap, t + ch - gap);
                 canvas.drawRoundRect(rect, radius, radius, keyPaint);
                 textPaint.setColor(theme.accentText);
             } else {
                 textPaint.setColor(theme.text);
             }
             String s = shownCase(popupItems[i]);
-            canvas.drawText(s, l + cw / 2f, popupRect.centerY() - (fm.ascent + fm.descent) / 2f, textPaint);
+            canvas.drawText(s, l + cw / 2f, t + ch / 2f - (fm.ascent + fm.descent) / 2f, textPaint);
         }
     }
 
@@ -455,9 +484,12 @@ final class KeyboardView extends View {
         return best;
     }
 
+    /** 0-2 for a suggestion, PASTE for the paste button, -1 for nothing. */
     private int stripIndexAt(float x, float y) {
         if (y < 0 || y >= stripH) return -1;
-        int i = (int) (x / (getWidth() / 3f));
+        float pw = pasteWidth();
+        if (x >= getWidth() - pw) return PASTE;
+        int i = (int) (x / ((getWidth() - pw) / 3f));
         if (i < 0 || i > 2 || suggestions[i] == null) return -1;
         return i;
     }
@@ -541,7 +573,7 @@ final class KeyboardView extends View {
             return;
         }
         if (popupItems != null) {
-            updatePopupSelection(x);
+            updatePopupSelection(x, y);
             return;
         }
         if (downKey == null) return;
@@ -583,7 +615,8 @@ final class KeyboardView extends View {
         removeCallbacks(repeatRunnable);
         if (inStrip) {
             int i = stripIndexAt(x, y);
-            if (i >= 0 && i == stripDownIndex) listener.onSuggestionPicked(i);
+            if (i == PASTE && stripDownIndex == PASTE) listener.onPaste();
+            else if (i >= 0 && i == stripDownIndex) listener.onSuggestionPicked(i);
         } else if (popupItems != null) {
             if (popupSel >= 0 && popupSel < popupItems.length) {
                 String s = popupItems[popupSel];
@@ -673,26 +706,32 @@ final class KeyboardView extends View {
         popupItems = items;
         pressedKey = null;
         keyRect(downKey, rect);
+        boolean grid = downKey.moreCols > 0 && items.length > downKey.moreCols;
+        popupCols = grid ? downKey.moreCols : items.length;
+        popupRows = (items.length + popupCols - 1) / popupCols;
         float cw = unit;
-        float w = cw * items.length;
-        float left = rect.centerX() - cw / 2f;
+        float w = cw * popupCols;
+        // one row starts above the key; a grid ends above it (its bottom-right cell is over the key)
+        float left = grid ? rect.centerX() + cw / 2f - w : rect.centerX() - cw / 2f;
         if (left + w > getWidth()) left = getWidth() - w;
         if (left < 0) left = 0;
         float bottom = rect.top - gap;
-        float top = Math.max(0f, bottom - rowH);
-        bottom = Math.max(bottom, top + rowH * 0.8f);
+        float ch = Math.min(rowH, bottom / popupRows);
+        float top = Math.max(0f, bottom - ch * popupRows);
+        bottom = Math.max(bottom, top + ch * 0.8f * popupRows);
         popupRect.set(left, top, left + w, bottom);
-        popupSel = 0;
-        updatePopupSelection(downX);
+        popupSel = -1;
+        updatePopupSelection(downX, downY); // the finger is below the popup: the cell right above it
         feedback();
         invalidate();
     }
 
-    private void updatePopupSelection(float x) {
-        float cw = popupRect.width() / popupItems.length;
-        int i = (int) ((x - popupRect.left) / cw);
-        if (i < 0) i = 0;
-        if (i >= popupItems.length) i = popupItems.length - 1;
+    private void updatePopupSelection(float x, float y) {
+        float cw = popupRect.width() / popupCols, ch = popupRect.height() / popupRows;
+        int col = (int) Math.floor((x - popupRect.left) / cw), row = (int) Math.floor((y - popupRect.top) / ch);
+        col = Math.max(0, Math.min(popupCols - 1, col));
+        row = Math.max(0, Math.min(popupRows - 1, row));
+        int i = Math.min(popupItems.length - 1, row * popupCols + col);
         if (i != popupSel) {
             popupSel = i;
             invalidate();

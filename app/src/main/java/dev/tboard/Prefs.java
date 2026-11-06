@@ -21,6 +21,7 @@ public final class Prefs {
     public static final String AUTO_SPACE = "auto_space";
     public static final String SUGGESTIONS = "suggestions";
     public static final String NEXT_WORD = "next_word";
+    public static final String SUGGEST_EVERYWHERE = "suggest_everywhere";
     public static final String LEARN = "learn";
     public static final String BLOCK_OFFENSIVE = "block_offensive";
     public static final String SPACE_CURSOR = "space_cursor";
@@ -65,6 +66,9 @@ public final class Prefs {
                     "Add a space automatically before the next word after a swipe", true),
             new Toggle("Suggestions", SUGGESTIONS, "Suggestion bar",
                     "Show word suggestions above the keys", true),
+            new Toggle("Suggestions", SUGGEST_EVERYWHERE, "Suggestions in every app",
+                    "Some apps, like Google Keep, ask keyboards not to suggest or correct words. Gboard ignores that, "
+                            + "and so does TBoard while this is on. Browser text boxes that ask are still respected.", true),
             new Toggle("Suggestions", NEXT_WORD, "Next-word suggestions",
                     "After a word, suggest the words you usually type next", true),
             new Toggle("Suggestions", LEARN, "Learn from my typing",

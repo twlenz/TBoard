@@ -33,7 +33,7 @@ Each build has a higher version number than the last, so Android refuses to inst
 
 ### Safety notes
 
-- The app has no permissions at all: no internet, storage, contacts or anything else. It can only read and write its own private folder, and uninstalling it removes only that folder.
+- The app has no permissions at all: no internet, storage, contacts or anything else. It reads the clipboard only when you tap the paste button (Android allows the active keyboard to do that). It can only read and write its own private folder, and uninstalling it removes only that folder.
 - It doesn't run before the phone's first unlock after a restart (it isn't "direct boot aware"), so Android uses your phone's own keyboard for that unlock. You can't be locked out by it.
 - Keep your phone's original keyboard enabled. If TBoard ever misbehaves, long-press the space bar (or use the keyboard button in the navigation bar) to switch back.
 
@@ -44,7 +44,8 @@ Each build has a higher version number than the last, so Android refuses to inst
 - **Words to keep** (in the app's settings): add names, slang or anything autocorrect keeps changing. Words on the list are never autocorrected, are suggested as you type, and stay when you clear learned data. Words you kept by undoing an autocorrection appear there too, so you can remove them.
 - **Fixing a word later teaches it.** Backspacing into a word, selecting it, or tapping inside it lets you edit it. If you change a misspelling into a real word ("hte" → "hate"), autocorrect makes that same change by itself from then on. If you change an autocorrection back to what you typed, it stops making that correction.
 - **Emoji:** tap the smiley key. The magnifier next to ABC searches emoji by name ("heart", "thumbs up"); the letter keys type into the search box. Emoji the phone can't display are hidden.
-- **Long-press** a top-row letter for its number, a vowel or certain consonants (s, c, n, z, l) for accents, the period for more punctuation, and the comma for settings.
+- **Paste:** the clipboard button at the right end of the suggestion bar types what you copied. TBoard reads the clipboard only when you tap it, and never learns from pasted text.
+- **Long-press** a top-row letter for its number, a vowel or certain consonants (s, c, n, z, l) for accents, the period for a 3×3 grid of punctuation (just hold and release for **'**; **!** is one step left, **?** one step up), M for μ, and the comma for settings.
 - **Long-press space** to switch keyboards; **slide on space** to move the cursor.
 - **Double-tap shift** for caps lock.
 - **Space on the number page goes back to the letters**, except in number-only fields (phone numbers, PINs, dates), which stay on the numbers.

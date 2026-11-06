@@ -71,6 +71,8 @@ public class FlowTest {
         key(-5); check("backspace after a swipe deletes one letter", "Hello world. Ho  [composing Ho]");
         key(-5); key(-5);
         swipe("are"); type("you"); check("tapping after a swipe starts a new word", "Hello world. Are you  [composing you]");
+        start(InputType.TYPE_CLASS_TEXT, 0);
+        swipe("hello"); type("'s"); check("an apostrophe after a swiped word joins it", "Hello's  [composing Hello's]");
 
         start(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD, 0);
         type("teh "); check("no autocorrect in password fields", "teh ");
@@ -139,6 +141,27 @@ public class FlowTest {
         check("edited inside the word", "So what now ");
         check2("learned wnat -> what (got " + um.correctionFor("wnat") + ")", "what".equals(um.correctionFor("wnat")));
         type("wnat "); check("in-word fix is applied by itself", "So what now what ");
+
+        // apps like Google Keep mark their note fields "no suggestions"; TBoard still corrects there by default
+        int keepField = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+        start(keepField, 0);
+        type("i recieve "); check("autocorrect works in a Google Keep style note field", "I receive ");
+        ContextWrapper.PREFS.put(Prefs.SUGGEST_EVERYWHERE, false);
+        start(keepField, 0);
+        type("so recieve "); check("with \"Suggestions in every app\" off, the app's request is respected", "So recieve ");
+        ContextWrapper.PREFS.remove(Prefs.SUGGEST_EVERYWHERE);
+        start(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_WEB_EDIT_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS, 0);
+        type("teh recieve "); check("browser fields that ask for no suggestions are still respected (only auto-capitals)", "Teh recieve ");
+
+        // the paste button types what's on the clipboard
+        android.content.ClipboardManager.testClip = "zqxjv pasted text";
+        start(InputType.TYPE_CLASS_TEXT, 0);
+        type("hi "); s.onPaste(); check("paste puts the clipboard text at the cursor", "Hi zqxjv pasted text");
+        type(" ok"); s.onPaste(); check("paste right after a word in progress keeps the word as typed", "Hi zqxjv pasted text okzqxjv pasted text");
+        check2("pasted text isn't learned", ((Lexicon) get("lex")).user.count("zqxjv") == 0);
+        android.content.ClipboardManager.testClip = null;
+        s.onPaste(); check("an empty clipboard pastes nothing", "Hi zqxjv pasted text okzqxjv pasted text");
 
         // space on the number page goes back to the letters, except in number-only fields
         start(InputType.TYPE_CLASS_TEXT, 0);
