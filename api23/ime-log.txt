@@ -1,0 +1,11 @@
+11-07 20:27:47.261  1559  1559 W InputMethodManagerService: No IME selected. Choose the most applicable IME.
+11-07 20:27:49.272  1559  1573 E InputMethodManagerService: Ignoring updateSystemUiLocked due to an invalid token. uid:1000 token:null
+11-07 20:27:49.273  1559  1573 W InputMethodManagerService: Reset the default IME as "Resource" is ready here.
+11-07 20:27:49.287  1559  1573 V InputMethodManagerService: Adding window token: android.os.Binder@8287995
+11-07 20:27:49.288  1559  1559 W InputMethodManagerService: Illegal subtype state: old subtype = null, new subtype = android.view.inputmethod.InputMethodSubtype@c9194f98
+11-07 20:28:22.891  1559  1583 I PackageManager.DexOptimizer: Running dexopt (dex2oat) on: /data/app/vmdl2014368027.tmp/base.apk pkg=dev.tboard isa=x86 vmSafeMode=false debuggable=true oatDir = /data/app/vmdl2014368027.tmp/oat
+11-07 20:28:23.151  1559  1583 I PackageManager.DexOptimizer: Running dexopt (dex2oat) on: /data/app/vmdl1061588725.tmp/base.apk pkg=dev.tboard.test isa=x86 vmSafeMode=false debuggable=true oatDir = /data/app/vmdl1061588725.tmp/oat
+11-07 20:28:23.186  1559  1583 V BackupManagerService: restoreAtInstall pkg=dev.tboard.test token=2 restoreSet=0
+11-07 20:28:24.415  1559  1747 I ActivityManager: Start proc 2729:dev.tboard/u0a55 for service dev.tboard/.TBoardService
+11-07 20:28:24.415  1559  1747 V InputMethodManagerService: Adding window token: android.os.Binder@bec00e8
+11-07 20:28:24.419  2729  2729 W System  : ClassLoader referenced unknown path: /data/app/dev.tboard-1/lib/x86

@@ -1,0 +1,12 @@
+Performing Push Install
+	pkg: /data/local/tmp/app-debug.apk
+Success
+Performing Push Install
+	pkg: /data/local/tmp/app-debug-androidTest.apk
+Success
+package:dev.tboard
+package:dev.tboard.test
+      android.view.InputMethod:
+        68f07d0 dev.tboard/.TBoardService
+    versionCode=30 targetSdk=34
+    versionName=1.0.30

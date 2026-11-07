@@ -1,0 +1,80 @@
+11-07 20:28:07.894  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.onConfigurationChanged():1575 changedMask : 80000000
+11-07 20:28:07.898  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.initializeKeyboardTheme():1343 Apply keyboard theme: theme_border_bottom4dp_stylesheet_noshadow_gsans_pillkey_silkpopup_materiallight_phone_400_overlay_builtin_dynamic_color_light_base.binarypb:dynamic-light-fff0f0f3-ff76d1ff-ce191c6173d879ea127e4e40bfd70d3c_port
+11-07 20:28:07.917  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.android.settings fieldId=0 fieldName=null extras=null}, true)
+11-07 20:28:07.918  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.shouldHideHeaderOnInitialState():4008 ShouldHideHeaderOnInitialState = false
+11-07 20:28:07.924  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 2, unlocked = true
+11-07 20:28:08.091  1530  1530 W GoogleInputMethodService: GoogleInputMethodService.onConfigurationChanged():1557 onConfigurationChanged() : NewConfig = {1.0 310mcc260mnc [en_US] ldltr sw411dp w411dp h842dp 420dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 128 - 1080, 2337) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.146 fontWeightAdjustment=0}
+11-07 20:28:08.091  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.onConfigurationChanged():1575 changedMask : 20000400
+11-07 20:28:08.098  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.initializeKeyboardTheme():1343 Apply keyboard theme: theme_border_bottom4dp_stylesheet_noshadow_gsans_pillkey_silkpopup_materiallight_phone_400_overlay_builtin_dynamic_color_light_base.binarypb:dynamic-light-fff0f0f3-ff76d1ff-ce191c6173d879ea127e4e40bfd70d3c_port
+11-07 20:28:08.102  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.android.settings fieldId=0 fieldName=null extras=null}, true)
+11-07 20:28:08.102  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.shouldHideHeaderOnInitialState():4008 ShouldHideHeaderOnInitialState = false
+11-07 20:28:08.107  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 2, unlocked = true
+11-07 20:28:08.811   518   547 D SystemServerTimingAsync: ssm.onUnlockedUser-0_com.android.server.inputmethod.InputMethodManagerService$Lifecycle
+11-07 20:28:08.811   518   547 V SystemServerTimingAsync: ssm.onUnlockedUser-0_com.android.server.inputmethod.InputMethodManagerService$Lifecycle took to complete: 0ms
+11-07 20:28:11.625  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():3227 
+11-07 20:28:11.643  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 0, unlocked = true
+11-07 20:28:11.643  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.google.android.apps.nexuslauncher fieldId=0 fieldName=null extras=null}, false)
+11-07 20:28:11.643  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.shouldHideHeaderOnInitialState():4008 ShouldHideHeaderOnInitialState = false
+11-07 20:28:11.720  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 2, unlocked = true
+11-07 20:28:14.049   518  3168 D SystemServerTimingAsync: ssm.onCompletedEventUser-0_{|Unlocked|}_com.android.server.inputmethod.InputMethodManagerService$Lifecycle
+11-07 20:28:14.049   518  3168 V SystemServerTimingAsync: ssm.onCompletedEventUser-0_{|Unlocked|}_com.android.server.inputmethod.InputMethodManagerService$Lifecycle took to complete: 0ms
+11-07 20:28:24.666  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.google.android.apps.nexuslauncher fieldId=0 fieldName=null extras=null}, true)
+11-07 20:28:24.666  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.shouldHideHeaderOnInitialState():4008 ShouldHideHeaderOnInitialState = false
+11-07 20:28:24.671  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 2, unlocked = true
+11-07 20:28:24.850  1044  2543 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.GameControllerPreferenceController
+11-07 20:28:24.850  1044  2543 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.SpellCheckerForWorkPreferenceController
+11-07 20:28:24.854  1044  2543 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.KeyboardPreferenceController
+11-07 20:28:24.854  1044  2543 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.TrackpadSettingsController
+11-07 20:28:24.936  1044  2543 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.UserDictionaryListPreferenceController
+11-07 20:28:25.040  1044  2543 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.ModifierKeysPreferenceController
+11-07 20:28:25.042  1044  2543 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.ModifierKeysRestorePreferenceController
+11-07 20:28:38.262   518   572 V BackupManagerService: [UserID:0] restoreAtInstall pkg=dev.tboard token=1 restoreSet=0
+11-07 20:28:38.446   518   800 I SdkSandboxManager: No SDKs used. Skipping SDK data reconcilation for CallingInfo{mUid=10192, mPackageName='dev.tboard, mAppProcessToken='null'}
+11-07 20:28:38.512  1043  1043 D CarrierSvcBindHelper: onPackageAdded: dev.tboard
+11-07 20:28:38.571  1635  1635 I AiAiEcho: AppFetcherImplV2 updateApps package:[dev.tboard], userId:[0], reason:[package is added.].
+11-07 20:28:38.608  1043  1367 D ImsResolver: maybeAddedImsService, packageName: dev.tboard
+11-07 20:28:38.695   518   572 V BackupManagerService: [UserID:0] restoreAtInstall pkg=dev.tboard.test token=2 restoreSet=0
+11-07 20:28:38.762  1043  1043 D CarrierSvcBindHelper: onPackageModified: dev.tboard
+11-07 20:28:38.860  1043  1367 D ImsResolver: maybeAddedImsService, packageName: dev.tboard
+11-07 20:28:38.864  1043  1043 D CarrierSvcBindHelper: onPackageAdded: dev.tboard.test
+11-07 20:28:38.874   518   800 I SdkSandboxManager: No SDKs used. Skipping SDK data reconcilation for CallingInfo{mUid=10193, mPackageName='dev.tboard.test, mAppProcessToken='null'}
+11-07 20:28:38.911  1043  1367 D ImsResolver: maybeAddedImsService, packageName: dev.tboard.test
+11-07 20:28:39.049   518   539 W system_server: Long monitor contention with owner android.bg (546) at void com.android.server.inputmethod.InputMethodManagerService$MyPackageMonitor.onFinishPackageChangesInternal()(InputMethodManagerService.java:1562) waiters=0 in java.util.List com.android.server.inputmethod.InputMethodManagerService$LocalServiceImpl.getEnabledInputMethodListAsUser(int) for 116ms
+11-07 20:28:39.053  1635  1635 I AiAiEcho: AppFetcherImpl onPackageChanged dev.tboard.
+11-07 20:28:39.064  4802  4802 W ziparchive: Unable to open '/data/app/~~IC2MpUT0ydo7rrYWfdZPCQ==/dev.tboard-amyuTcAiCUFk3HZSD-6G-w==/base.dm': No such file or directory
+11-07 20:28:39.064  4802  4802 W ziparchive: Unable to open '/data/app/~~IC2MpUT0ydo7rrYWfdZPCQ==/dev.tboard-amyuTcAiCUFk3HZSD-6G-w==/base.dm': No such file or directory
+11-07 20:28:39.066  1635  2996 I AiAiEcho: AppIndexer Package:[dev.tboard] UserProfile:[0] Enabled:[true].
+11-07 20:28:39.085  1635  2996 I AiAiEcho: AppFetcherImplV2 updateApps package:[dev.tboard], userId:[0], reason:[package is updated.].
+11-07 20:28:39.205   518  2328 I AppsFilter: interaction: PackageSetting{e89fd01 dev.tboard.test/10193} -> PackageSetting{b9d37a6 com.google.android.settings.intelligence/10118} BLOCKED
+11-07 20:28:39.205   518  2328 I AppsFilter: interaction: PackageSetting{5bd90c5 dev.tboard/10192} -> PackageSetting{b9d37a6 com.google.android.settings.intelligence/10118} BLOCKED
+11-07 20:28:39.324  1043  1043 D CarrierSvcBindHelper: onPackageModified: dev.tboard.test
+11-07 20:28:39.354  1044  2543 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.ModifierKeysPreferenceController
+11-07 20:28:39.354  1044  2543 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.ModifierKeysRestorePreferenceController
+11-07 20:28:39.376  1044  1077 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.ModifierKeysPreferenceController
+11-07 20:28:39.376  1044  1077 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.ModifierKeysRestorePreferenceController
+11-07 20:28:39.469   518   548 I ActivityManager: Start proc 4852:dev.tboard/u0a192 for service {dev.tboard/dev.tboard.TBoardService}
+11-07 20:28:39.508  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():3227 
+11-07 20:28:39.519  1530  1530 I GoogleInputMethodService: GoogleInputMethodService.updateDeviceLockedStatus():2087 repeatCheckTimes = 0, unlocked = true
+11-07 20:28:39.531   518   820 W InputManager-JNI: Input channel object '9ff22be InputMethod (client)' was disposed without first being removed with the input manager!
+11-07 20:28:39.540  1635  1635 I AiAiEcho: AppFetcherImplV2 updateApps package:[dev.tboard.test], userId:[0], reason:[package is added.].
+11-07 20:28:39.618  4852  4852 I dev.tboard: Late-enabling -Xcheck:jni
+11-07 20:28:39.642  4852  4852 I dev.tboard: Using CollectorTypeCC GC.
+11-07 20:28:39.643  4852  4852 W dev.tboard: Unexpected CPU variant for x86: x86_64.
+11-07 20:28:39.643  4852  4852 W dev.tboard: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+11-07 20:28:39.731  1635  1635 I AiAiEcho: AppFetcherImpl onPackageChanged dev.tboard.test.
+11-07 20:28:39.734  1635  3403 I AiAiEcho: AppIndexer Package:[dev.tboard.test] UserProfile:[0] Enabled:[true].
+11-07 20:28:39.734  1635  3403 I AiAiEcho: AppFetcherImplV2 updateApps package:[dev.tboard.test], userId:[0], reason:[package is updated.].
+11-07 20:28:39.768  1043  1367 D ImsResolver: maybeAddedImsService, packageName: dev.tboard.test
+11-07 20:28:40.030  4852  4852 W ziparchive: Unable to open '/data/app/~~IC2MpUT0ydo7rrYWfdZPCQ==/dev.tboard-amyuTcAiCUFk3HZSD-6G-w==/base.dm': No such file or directory
+11-07 20:28:40.030  4852  4852 W ziparchive: Unable to open '/data/app/~~IC2MpUT0ydo7rrYWfdZPCQ==/dev.tboard-amyuTcAiCUFk3HZSD-6G-w==/base.dm': No such file or directory
+11-07 20:28:40.032  4852  4852 D nativeloader: Configuring clns-6 for other apk /data/app/~~IC2MpUT0ydo7rrYWfdZPCQ==/dev.tboard-amyuTcAiCUFk3HZSD-6G-w==/base.apk. target_sdk_version=34, uses_libraries=, library_path=/data/app/~~IC2MpUT0ydo7rrYWfdZPCQ==/dev.tboard-amyuTcAiCUFk3HZSD-6G-w==/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/dev.tboard
+11-07 20:28:40.047  4852  4852 V GraphicsEnvironment: ANGLE GameManagerService for dev.tboard: false
+11-07 20:28:40.047  4852  4852 V GraphicsEnvironment: dev.tboard is not listed in per-application setting
+11-07 20:28:40.118  1044  1077 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.UserDictionaryListPreferenceController
+11-07 20:28:40.119  1044  1077 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.GameControllerPreferenceController
+11-07 20:28:40.119  1044  1077 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.SpellCheckerForWorkPreferenceController
+11-07 20:28:40.216  1044  1077 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.KeyboardPreferenceController
+11-07 20:28:40.216  1044  1077 D PrefCtrlListHelper: Could not find Context-only controller for pref: com.android.settings.inputmethod.TrackpadSettingsController
+11-07 20:28:40.346   518   915 W ActivityTaskManager: Current config: {1.0 310mcc260mnc [en_US] ldltr sw411dp w411dp h842dp 420dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 128 - 1080, 2337) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.146 fontWeightAdjustment=0} unchanged for IME proc dev.tboard
+11-07 20:28:40.346   518   915 W ActivityTaskManager: Current config: {1.0 310mcc260mnc [en_US] ldltr sw411dp w411dp h842dp 420dpi nrml long port finger qwerty/v/v -nav/h winConfig={ mBounds=Rect(0, 0 - 1080, 2400) mAppBounds=Rect(0, 128 - 1080, 2337) mMaxBounds=Rect(0, 0 - 1080, 2400) mDisplayRotation=ROTATION_0 mWindowingMode=fullscreen mDisplayWindowingMode=fullscreen mActivityType=undefined mAlwaysOnTop=undefined mRotation=ROTATION_0} as.3 s.146 fontWeightAdjustment=0} unchanged for IME proc dev.tboard
+11-07 20:28:40.415   518  2416 D CoreBackPreview: Window{7bcddae u0 InputMethod}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@edede83, mPriority=0, mIsAnimationCallback=false}
