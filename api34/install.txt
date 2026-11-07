@@ -1,0 +1,11 @@
+Performing Streamed Install
+Success
+Performing Streamed Install
+Success
+package:dev.tboard.test
+package:dev.tboard
+      android.view.InputMethod:
+        e937d41 dev.tboard/.TBoardService filter 63c52e6 permission android.permission.BIND_INPUT_METHOD
+          Action: "android.view.InputMethod"
+    versionCode=31 minSdk=23 targetSdk=34
+    versionName=1.0.31

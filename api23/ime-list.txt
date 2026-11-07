@@ -1,0 +1,4 @@
+com.android.inputmethod.latin/.LatinIME
+jp.co.omronsoft.openwnn/.OpenWnnJAJP
+com.example.android.softkeyboard/.SoftKeyboard
+dev.tboard/.TBoardService
