@@ -44,8 +44,14 @@ public class FlowTest {
 
         start(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES, 0);
         type("teh "); check("autocorrect teh -> The", "The ");
-        key(-5); check("backspace undoes autocorrect", "Teh ");
+        key(-5); check("backspace undoes autocorrect: the typed word is back, without the space", "Teh  [composing Teh]");
+        type(" "); check("then space keeps the word as typed", "Teh ");
         type("teh "); check("reverted word is not corrected again", "Teh teh ");
+        start(InputType.TYPE_CLASS_TEXT, 0);
+        type("so taht."); check("setup: autocorrect before a period", "So that.");
+        key(-5); check("undo after punctuation keeps the punctuation", "So taht.");
+        start(InputType.TYPE_CLASS_TEXT, 0);
+        type("we wnet "); key(-5); key(-5); type("r "); check("editing a restored word lets autocorrect work again (wner -> went)", "We went ");
 
         start(InputType.TYPE_CLASS_TEXT, 0);
         type("hi  "); check("double-space period is off by default", "Hi  ");
