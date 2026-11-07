@@ -47,7 +47,7 @@ public final class Prefs {
             new Toggle("Corrections", AUTOCORRECT, "Autocorrect",
                     "Fix misspelled words when you press space or punctuation", true),
             new Toggle("Corrections", UNDO_AUTOCORRECT, "Backspace undoes autocorrect",
-                    "Backspace right after a correction puts back exactly what you typed", true),
+                    "Backspace right after a correction puts back exactly what you typed; then space keeps it", true),
             new Toggle("Corrections", BLOCK_OFFENSIVE, "Block offensive words",
                     "Never suggest or autocorrect to offensive words (words you type yourself are still learned)", false),
             new Toggle("Typing", DOUBLE_SPACE_PERIOD, "Double-space for period",

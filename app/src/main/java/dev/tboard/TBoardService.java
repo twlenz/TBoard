@@ -454,6 +454,7 @@ public final class TBoardService extends InputMethodService
             firstCharAuto = !reopened && autoShift && shiftState == 0;
         }
         boolean shifted = shiftState > 0 || autoShift;
+        if (!fromSwipe) pickedExplicit = false; // e.g. a word restored by undo, now being changed
         composing.append(shifted ? Character.toUpperCase(c) : c);
         points.add(Float.isNaN(x) ? null : new float[]{x, y});
         if (shiftState == 1) shiftState = 0;
@@ -563,14 +564,32 @@ public final class TBoardService extends InputMethodService
             CharSequence before = ic.getTextBeforeCursor(expect.length(), 0);
             if (before != null && before.toString().equals(expect)) {
                 // put back exactly what was typed, and remember it as a word the person wants
-                ic.deleteSurroundingText(expect.length(), 0);
-                ic.commitText(corrOriginal + corrSep, 1);
-                if (allowLearning && lex != null) {
-                    lex.user.unlearn(corrPrev, storageForm(corrResult));
-                    lex.user.confirm(storageForm(corrOriginal));
-                    lex.user.learn(corrPrev, storageForm(corrOriginal), true);
-                }
+                String original = corrOriginal, corrected = corrResult, sep = corrSep;
                 corrResult = null;
+                if (allowLearning && lex != null) {
+                    lex.user.unlearn(corrPrev, storageForm(corrected));
+                    lex.user.confirm(storageForm(original));
+                }
+                if (" ".equals(sep)) {
+                    // the typed word comes back still open, without the space: space keeps it as it is
+                    // (it's never autocorrected again), more letters or backspaces edit it as usual
+                    ic.beginBatchEdit();
+                    ic.deleteSurroundingText(expect.length(), 0);
+                    ic.setComposingText(original, 1);
+                    ic.endBatchEdit();
+                    resetWordState();
+                    composing.append(original);
+                    for (int i = 0; i < original.length(); i++) points.add(null);
+                    pickedExplicit = true;
+                    resumeOriginal = null;
+                    pendingSpace = false;
+                    spaceWasAuto = false;
+                } else {
+                    // after punctuation ("teh." -> "the."), put back the word and keep the punctuation
+                    ic.deleteSurroundingText(expect.length(), 0);
+                    ic.commitText(original + sep, 1);
+                    if (allowLearning && lex != null) lex.user.learn(corrPrev, storageForm(original), true);
+                }
                 updateShift();
                 updateSuggestions();
                 return;
@@ -589,6 +608,7 @@ public final class TBoardService extends InputMethodService
 
     /** Deletes the last letter of the word being typed (a swiped word too, letter by letter). */
     private void deleteFromComposing(InputConnection ic) {
+        pickedExplicit = false; // a word restored by undo, or a picked suggestion, being changed
         if (fromSwipe) {
             fromSwipe = false;
             pickedExplicit = false;

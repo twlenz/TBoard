@@ -244,6 +244,19 @@ public class ShotRunner extends Instrumentation {
             sleep(300);
             shot("18_next_word");
         });
+        step("18b_undo_autocorrect", () -> {
+            clearField();
+            type("i like teh ");
+            String corrected = fieldText();
+            tapSpecial(9.25f, 2); // backspace right after the autocorrection
+            String undone = fieldText();
+            shot("18b_undo_autocorrect");
+            type(" ");
+            String kept = fieldText();
+            if (!corrected.equals("I like the ") || !undone.equals("I like teh") || !kept.equals("I like teh ")) {
+                throw new IllegalStateException("undo: \"" + corrected + "\" -> \"" + undone + "\" -> \"" + kept + "\"");
+            }
+        });
         step("19_numbers_hidden", () -> {
             prefs.edit().putBoolean("number_hints", false).commit();
             sleep(500);
